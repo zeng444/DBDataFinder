@@ -1,0 +1,22 @@
+{
+  "name": "janfish/db-finder",
+  "description": "DB Finder",
+  "authors": [
+    {
+      "name": "Robert",
+      "email": "robert@janfish.cn"
+    }
+  ],
+  "keywords": [
+    "Finder"
+  ],
+  "require": {
+    "php": ">=7.1"
+  },
+  "autoload": {
+    "files": [],
+    "psr-4": {
+      "Janfish\\Database\\Criteria\\": "src/"
+    }
+  }
+}
