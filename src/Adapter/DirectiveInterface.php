@@ -11,21 +11,21 @@ namespace Janfish\Database\Criteria\Adapter;
 interface DirectiveInterface
 {
 
-    public function makeInFilter($value);
+    public function makeInFilter(string $field, array $value);
 
-    public function makeNotInFilter($value);
+    public function makeNotInFilter(string $field, array $value);
 
-    public function makeNeqFilter($value);
+    public function makeNeqFilter(string $field, string $value);
 
-    public function makeEqFilter($value);
+    public function makeEqFilter(string $field, string $value);
 
-    public function makeGtFilter($value);
+    public function makeGtFilter(string $field, string $value);
 
-    public function makeLtFilter($value);
+    public function makeLtFilter(string $field, string $value);
 
-    public function makeGteFilter($value);
+    public function makeGteFilter(string $field, string $value);
 
-    public function makeLteFilter($value);
+    public function makeLteFilter(string $field, string $value);
 
-    public function makeRegexFilter($value);
+    public function makeRegexFilter(string $field, string $value);
 }

@@ -12,7 +12,9 @@
   ],
   "require": {
     "php": ">=7.1",
-    "ext-pdo": "*"
+    "ext-pdo": "*",
+    "ext-mongodb": "*",
+    "mongodb/mongodb": "^1.6"
   },
   "autoload": {
     "files": [],

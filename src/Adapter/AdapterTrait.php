@@ -11,7 +11,7 @@ namespace Janfish\Database\Criteria\Adapter;
 trait AdapterTrait
 {
 
-    public $conditions=[];
+    public $conditions = [];
     public $sort;
     protected $offset = 0;
     protected $limit = 1;

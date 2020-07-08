@@ -61,10 +61,10 @@ $searchConditions = [
 //'col1'=>["eq"=>8],
 //    'col0'=>["a","b"],
 //];
-$searchConditions=[
-    'licensePlateNo'=>['regex'=>"jiasdiasdji"],
-    'engineNo'=>'2'
-];
+//$searchConditions=[
+//    'licensePlateNo'=>['regex'=>"jiasdiasdji"],
+//    'engineNo'=>'2'
+//];
 $find->setConditions($searchConditions);
 print_r($find->fetchOne());
 print_r($find->fetchAll());

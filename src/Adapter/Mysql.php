@@ -37,10 +37,11 @@ class Mysql implements AdapterInterface, DirectiveInterface
     /**
      * Author:Robert
      *
+     * @param $field
      * @param $value
      * @return array
      */
-    public function makeInFilter($value)
+    public function makeInFilter(string $field, array $value)
     {
         $holders = [];
         $bind = [];
@@ -49,17 +50,18 @@ class Mysql implements AdapterInterface, DirectiveInterface
             $holders[] = ':'.$holder;
             $bind[$holder] = $val;
         }
-        $sql = "IN (".implode(',', $holders).")";
+        $sql = "`$field` IN (".implode(',', $holders).")";
         return [$sql, $bind];
     }
 
     /**
      * Author:Robert
      *
+     * @param $field
      * @param $value
      * @return array
      */
-    public function makeNotInFilter($value)
+    public function makeNotInFilter(string $field, array $value)
     {
         $holders = [];
         $bind = [];
@@ -68,20 +70,21 @@ class Mysql implements AdapterInterface, DirectiveInterface
             $holders[] = ':'.$holder;
             $bind[$holder] = $val;
         }
-        $sql = "NOT IN (".implode(',', $holders).")";
+        $sql = "`$field` NOT IN (".implode(',', $holders).")";
         return [$sql, $bind];
     }
 
     /**
      * Author:Robert
      *
+     * @param $field
      * @param $value
      * @return array
      */
-    public function makeNeqFilter($value)
+    public function makeNeqFilter(string $field, string $value)
     {
         $holder = $this->generateHolderPlaceChar();
-        $sql = "<> :$holder";
+        $sql = "`$field` <> :$holder";
         return [$sql, [$holder => $value]];
     }
 
@@ -89,13 +92,14 @@ class Mysql implements AdapterInterface, DirectiveInterface
     /**
      * Author:Robert
      *
+     * @param $field
      * @param $value
      * @return array
      */
-    public function makeRegexFilter($value)
+    public function makeRegexFilter(string $field, string $value)
     {
         $holder = $this->generateHolderPlaceChar();
-        $sql = "LIKE :$holder";
+        $sql = "`$field` LIKE :$holder";
         return [$sql, [$holder => "%$value%"]];
     }
 
@@ -103,65 +107,70 @@ class Mysql implements AdapterInterface, DirectiveInterface
     /**
      * Author:Robert
      *
+     * @param $field
      * @param $value
      * @return array
      */
-    public function makeEqFilter($value)
+    public function makeEqFilter(string $field, string $value)
     {
         $holder = $this->generateHolderPlaceChar();
-        $sql = "= :$holder";
+        $sql = "`$field` = :$holder";
         return [$sql, [$holder => $value]];
     }
 
     /**
      * Author:Robert
      *
+     * @param $field
      * @param $value
      * @return array
      */
-    public function makeGtFilter($value)
+    public function makeGtFilter(string $field, string $value)
     {
         $holder = $this->generateHolderPlaceChar();
-        $sql = ">= :$holder";
+        $sql = "`$field` >= :$holder";
         return [$sql, [$holder => $value]];
     }
 
     /**
      * Author:Robert
      *
+     * @param $field
      * @param $value
      * @return array
      */
-    public function makeLtFilter($value)
+    public function makeLtFilter(string $field, string $value)
     {
         $holder = $this->generateHolderPlaceChar();
-        $sql = "<= :$holder";
+        $sql = "`$field` <= :$holder";
         return [$sql, [$holder => $value]];
     }
 
     /**
      * Author:Robert
      *
+     * @param $field
      * @param $value
      * @return array
      */
-    public function makeGteFilter($value)
+    public function makeGteFilter(string $field, string $value)
     {
         $holder = $this->generateHolderPlaceChar();
-        $sql = ">= :$holder";
+        $sql = "`$field` >= :$holder";
         return [$sql, [$holder => $value]];
     }
 
     /**
      * Author:Robert
      *
+     * @param $field
      * @param $value
      * @return array
      */
-    public function makeLteFilter($value)
+    public function makeLteFilter(string $field, string $value)
     {
         $holder = $this->generateHolderPlaceChar();
-        $sql = "<= :$holder";
+        $sql = "`$field` <= :$holder";
         return [$sql, [$holder => $value]];
     }
 
@@ -179,8 +188,8 @@ class Mysql implements AdapterInterface, DirectiveInterface
             foreach ($rules as $directive => $val) {
                 $funcName = "make".ucfirst($directive)."Filter";
                 if (method_exists($this, $funcName)) {
-                    $symbol = $this->$funcName($val);
-                    $sql[] = "`$column`".' '.$symbol[0];
+                    $symbol = $this->$funcName($column, $val);
+                    $sql[] = $symbol[0];
                     if ($symbol[1]) {
                         $bind = array_merge($bind, $symbol[1]);
                     }
@@ -199,7 +208,6 @@ class Mysql implements AdapterInterface, DirectiveInterface
     private function execute(): array
     {
         $fetchParams = $this->getFilters();
-        print_r($fetchParams);
         $column = $this->makeColumnSQL();
         $table = $this->getSchemaTable();
         $where = $fetchParams[0];
@@ -259,7 +267,7 @@ class Mysql implements AdapterInterface, DirectiveInterface
     {
         $this->setPagination(1);
         $item = $this->execute();
-        return $item ? current($item):[];
+        return $item ? current($item) : [];
     }
 
     /**

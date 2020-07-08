@@ -5,7 +5,7 @@ namespace Janfish\Database\Criteria\Adapter;
 use Janfish\Database\Criteria\Finder;
 use Phalcon\Di;
 
-class Mongo implements AdapterInterface,DirectiveInterface
+class Mongo implements AdapterInterface, DirectiveInterface
 {
     use AdapterTrait;
 
@@ -23,49 +23,141 @@ class Mongo implements AdapterInterface,DirectiveInterface
         Finder::NOT_IN_DIRECTIVE => '$nin',
     ];
 
-
-    public function makeInFilter( $value)
+    /**
+     * Author:Robert
+     *
+     * @param string $field
+     * @param string $val
+     * @return float|int|\MongoDB\BSON\ObjectId|\MongoDB\BSON\Regex|\MongoDB\BSON\UTCDateTime|string
+     */
+    private function formatValue(string $field, string $val)
     {
-        return [self::DIRECTIVE_MAP[Finder::IN_DIRECTIVE],$value];
+        if ($field === '_id') {
+            $val = new \MongoDB\BSON\ObjectId($val);
+        } elseif (in_array($val, $this->fullTextColumns)) {
+            $val = new \MongoDB\BSON\Regex(preg_quote($val));
+        } elseif (in_array($val, $this->dateColumns)) {
+            $val = new \MongoDB\BSON\UTCDateTime(strtotime($val) * 1000);
+        } elseif (in_array($field, $this->integerColumns)) {
+            $val = (int)$val;
+        } elseif (in_array($field, $this->doubleColumns)) {
+            $val = (double)$val;
+        }
+        return $val;
     }
 
-    public function makeNotInFilter( $value)
+    /**
+     * Author:Robert
+     *
+     * @param $field
+     * @param $value
+     * @return array
+     */
+    public function makeInFilter(string $field, array $value)
     {
-        return [self::DIRECTIVE_MAP[Finder::NOT_IN_DIRECTIVE] , $value];
+        foreach ($value as &$val) {
+            $val = $this->formatValue($field, $val);
+        }
+        return [self::DIRECTIVE_MAP[Finder::IN_DIRECTIVE], $value];
     }
 
-    public function makeNeqFilter($value)
+    /**
+     * Author:Robert
+     *
+     * @param $field
+     * @param $value
+     * @return array
+     */
+    public function makeNotInFilter(string $field, array $value)
     {
-        return [self::DIRECTIVE_MAP[Finder::NOT_EQUAL_DIRECTIVE] , $value];
+        foreach ($value as &$val) {
+            $val = $this->formatValue($field, $val);
+        }
+        return [self::DIRECTIVE_MAP[Finder::NOT_IN_DIRECTIVE], $value];
     }
 
-    public function makeEqFilter($value)
+    /**
+     * Author:Robert
+     *
+     * @param $field
+     * @param $value
+     * @return array
+     */
+    public function makeNeqFilter(string $field, string $value)
     {
-        return [self::DIRECTIVE_MAP[Finder::EQUAL_DIRECTIVE] , $value];
+        return [self::DIRECTIVE_MAP[Finder::NOT_EQUAL_DIRECTIVE], $this->formatValue($field, $value)];
     }
 
-    public function makeRegexFilter($value){
-        return [self::DIRECTIVE_MAP[Finder::REGEX_DIRECTIVE] , $value];
+    /**
+     * Author:Robert
+     *
+     * @param $field
+     * @param $value
+     * @return array
+     */
+    public function makeEqFilter(string $field, string $value)
+    {
+        return [self::DIRECTIVE_MAP[Finder::EQUAL_DIRECTIVE], $this->formatValue($field, $value)];
     }
 
-    public function makeGtFilter($value)
+    /**
+     * Author:Robert
+     *
+     * @param $field
+     * @param $value
+     * @return array
+     */
+    public function makeRegexFilter(string $field, string $value)
     {
-        return [self::DIRECTIVE_MAP[Finder::GREATER_THAN_DIRECTIVE] , $value];
+        return [self::DIRECTIVE_MAP[Finder::REGEX_DIRECTIVE], $this->formatValue($field, $value)];
     }
 
-    public function makeLtFilter($value)
+    /**
+     * Author:Robert
+     *
+     * @param $field
+     * @param $value
+     * @return array
+     */
+    public function makeGtFilter(string $field, string $value)
     {
-        return [self::DIRECTIVE_MAP[Finder::LESS_THAN_DIRECTIVE] , $value];
+        return [self::DIRECTIVE_MAP[Finder::GREATER_THAN_DIRECTIVE], $this->formatValue($field, $value)];
     }
 
-    public function makeGteFilter($value)
+    /**
+     * Author:Robert
+     *
+     * @param $field
+     * @param $value
+     * @return array
+     */
+    public function makeLtFilter(string $field, string $value)
     {
-        return [self::DIRECTIVE_MAP[Finder::GREATER_THAN_EQUAL_DIRECTIVE] , $value];
+        return [self::DIRECTIVE_MAP[Finder::LESS_THAN_DIRECTIVE], $this->formatValue($field, $value)];
     }
 
-    public function makeLteFilter($value)
+    /**
+     * Author:Robert
+     *
+     * @param $field
+     * @param $value
+     * @return array
+     */
+    public function makeGteFilter(string $field, string $value)
     {
-        return [self::DIRECTIVE_MAP[Finder::LESS_THAN_EQUAL_DIRECTIVE] , $value];
+        return [self::DIRECTIVE_MAP[Finder::GREATER_THAN_EQUAL_DIRECTIVE], $this->formatValue($field, $value)];
+    }
+
+    /**
+     * Author:Robert
+     *
+     * @param $field
+     * @param $value
+     * @return array
+     */
+    public function makeLteFilter(string $field, string $value)
+    {
+        return [self::DIRECTIVE_MAP[Finder::LESS_THAN_EQUAL_DIRECTIVE], $this->formatValue($field, $value)];
     }
 
     /**
@@ -81,7 +173,7 @@ class Mongo implements AdapterInterface,DirectiveInterface
             foreach ($rule as $directive => $val) {
                 $funcName = "make".ucfirst($directive)."Filter";
                 if (method_exists($this, $funcName)) {
-                    $symbol = $this->$funcName( $val);
+                    $symbol = $this->$funcName($column, $val);
                     $filters[$column][$symbol[0]] = $symbol[1];
                 }
             }
@@ -97,7 +189,7 @@ class Mongo implements AdapterInterface,DirectiveInterface
      */
     private function getMongoConnection()
     {
-        if($this->_mongo){
+        if ($this->_mongo) {
             return $this->_mongo;
         }
         $this->_mongo = (Di::getDefault())->get('db');
@@ -108,22 +200,21 @@ class Mongo implements AdapterInterface,DirectiveInterface
     }
 
 
-
     /**
      * Author:Robert
      *
      * @return array
      */
-    private function makeSortRule():array
+    private function makeSortRule(): array
     {
         $rule = [];
         if (!$this->sort) {
             return $rule;
         }
         foreach ($this->sort as $column => $command) {
-            $rule[$column] = $command ==='ASC'?1:-1;
+            $rule[$column] = $command === 'ASC' ? 1 : -1;
         }
-       return $rule;
+        return $rule;
     }
 
     /**
@@ -133,7 +224,7 @@ class Mongo implements AdapterInterface,DirectiveInterface
      */
     public function count(): int
     {
-        $filter =  $this->getFilters();
+        $filter = $this->getFilters();
         $mongo = $this->getDi()->get('mongo');
         $collection = $mongo->selectDatabase($this->schema);
         return $collection->count($filter);
@@ -146,7 +237,7 @@ class Mongo implements AdapterInterface,DirectiveInterface
      */
     private function execute()
     {
-        $filter =  $this->getFilters();
+        $filter = $this->getFilters();
         $mongo = $this->getDi()->get('mongo');
         $collection = $mongo->selectDatabase($this->schema);
         $items = $collection->find($filter, [
@@ -170,7 +261,7 @@ class Mongo implements AdapterInterface,DirectiveInterface
     {
         $this->setPagination(1);
         $item = $this->execute();
-        return $item ? current($item):[];
+        return $item ? current($item) : [];
     }
 
 

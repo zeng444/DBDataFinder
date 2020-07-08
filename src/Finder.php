@@ -19,7 +19,7 @@ use Janfish\Database\Criteria\Adapter\Mysql;
  * @method removeHideColumns(array $schema)
  * @method setColumns(array $schema)
  * @method setSort(array $schema)
- * @method setPagination(int $offset, int$limit = null)
+ * @method setPagination(int $offset, int $limit = null)
  * @method count(string $primaryId = null): int
  * @method fetchOne(): array
  * @method fetchAll(): array
@@ -107,9 +107,9 @@ class Finder
                     }
                 }
             } else {
-                if(in_array($column,$this->_instance->fullTextColumns)){
+                if (in_array($column, $this->_instance->fullTextColumns)) {
                     $rules[$column][self::REGEX_DIRECTIVE] = $condition;
-                }else{
+                } else {
                     $rules[$column][self::EQUAL_DIRECTIVE] = $condition;
                 }
             }
