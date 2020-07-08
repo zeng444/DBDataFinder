@@ -11,6 +11,8 @@ class Mongo implements AdapterInterface, DirectiveInterface
 
     private $_mongo;
 
+    const DEFAULT_PRIMARY_ID_NAME = '_id';
+
     const DIRECTIVE_MAP = [
         Finder::EQUAL_DIRECTIVE => '$eq',
         Finder::REGEX_DIRECTIVE => '$regex',
@@ -32,7 +34,7 @@ class Mongo implements AdapterInterface, DirectiveInterface
      */
     private function formatValue(string $field, string $val)
     {
-        if ($field === '_id') {
+        if ($field === self::DEFAULT_PRIMARY_ID_NAME) {
             $val = new \MongoDB\BSON\ObjectId($val);
         } elseif (in_array($val, $this->fullTextColumns)) {
             $val = new \MongoDB\BSON\Regex(preg_quote($val));
