@@ -2,36 +2,34 @@
 
 namespace Janfish\Database\Criteria\Adapter;
 
+/**
+ * Author:Robert
+ *
+ * Trait AdapterTrait
+ * @package Janfish\Database\Criteria\Adapter
+ */
 trait AdapterTrait
 {
 
-    protected $schema;
-    protected $table;
-    protected $columns;
-    protected $dateColumns;
-    protected $fullTextColumns;
-    protected $integerColumns;
-    protected $doubleColumns;
-    protected $conditions;
-    protected $sort;
-    protected $hideColumns;
-    protected $limit;
-    protected $offset;
-    public $dbInstance;
+    public $conditions=[];
+    public $sort;
+    protected $offset = 0;
+    protected $limit = 1;
+    public $fullTextColumns = [];
+    public $integerColumns = [];
+    public $doubleColumns = [];
+    public $dateColumns = [];
+    public $schema;
+    public $table;
+    public $hideColumns;
+    public $columns;
 
-    public function defineDoubleColumns(array $columns)
-    {
-        $this->doubleColumns = $columns;
-        return $this;
-    }
-
-    public function defineIntColumns(array $columns)
-    {
-        $this->integerColumns = $columns;
-        return $this;
-    }
-
-
+    /**
+     * Author:Robert
+     *
+     * @param string $schema
+     * @return $this
+     */
     public function setSchema(string $schema)
     {
         $this->schema = $schema;
@@ -39,56 +37,40 @@ trait AdapterTrait
     }
 
     /**
-     * 设置返回的列
+     * 查询数据表
      * Author:Robert
      *
-     * @param array $columns
+     * @param $table
      * @return $this
      */
-    public function setColumns(array $columns)
+    public function setTable($table)
     {
-        $this->columns = $columns;
+        $this->table = $table;
         return $this;
     }
 
 
-    public function setDbService($db)
-    {
-        $this->dbInstance = $db;
-        return $this;
-    }
-
-    /**
-     * Author:Robert
-     *
-     * @param array $items
-     * @return array
-     */
-    public function removeHideColumns(array $items)
-    {
-        $rules = [];
-        foreach ($this->hideColumns as $rule) {
-            $rules[$rule] = 0;
-        }
-        return array_map(function ($item) use ($rules) {
-            return array_diff_key($item, $rules);
-        }, $items);
-
-    }
     /**
      * Author:Robert
      *
      * @param array $columns
      * @return $this
      */
-    public function defineTypeColumns(array $columns)
+    public function defineDoubleColumns(array $columns)
     {
-        if (isset($columns['date'])) {
-            $this->defineDateColumns($columns['date']);
-        }
-        if (isset($columns['fullText'])) {
-            $this->defineFullTextColumns($columns['fullText']);
-        }
+        $this->doubleColumns = $columns;
+        return $this;
+    }
+
+    /**
+     * Author:Robert
+     *
+     * @param array $columns
+     * @return $this
+     */
+    public function defineIntegerColumns(array $columns)
+    {
+        $this->integerColumns = $columns;
         return $this;
     }
 
@@ -119,19 +101,6 @@ trait AdapterTrait
     }
 
     /**
-     * 设置查询条件
-     * Author:Robert
-     *
-     * @param array $conditions
-     * @return $this
-     */
-    public function setConditions(array $conditions)
-    {
-        $this->conditions = $conditions;
-        return $this;
-    }
-
-    /**
      * 定义隐藏的列，SELECT *时不返回
      * Author:Robert
      *
@@ -145,34 +114,57 @@ trait AdapterTrait
     }
 
     /**
-     * 查询数据表
      * Author:Robert
      *
-     * @param $table
+     * @param array $items
+     * @return array
+     */
+    public function removeHideColumns(array $items)
+    {
+        $rules = [];
+        foreach ($this->hideColumns as $rule) {
+            $rules[$rule] = 0;
+        }
+        return array_map(function ($item) use ($rules) {
+            return array_diff_key($item, $rules);
+        }, $items);
+    }
+
+    /**
+     *
+     * Author:Robert
+     *
+     * @param array $columns
      * @return $this
      */
-    public function setTable($table)
+    public function setColumns(array $columns)
     {
-        $this->table = $table;
+        $this->columns = $columns;
         return $this;
     }
 
 
     /**
-     * 设置排序
+     *
      * Author:Robert
      *
      * @param  $rule
      * @return $this
      */
-    public function setSort($rule)
+    public function setSort(array $rule)
     {
         $this->sort = $rule;
         return $this;
     }
 
-
-    public function setPagination($offset, $limit = null)
+    /**
+     * Author:Robert
+     *
+     * @param int $offset
+     * @param int|null $limit
+     * @return $this
+     */
+    public function setPagination(int $offset, int $limit = null)
     {
         if ($limit === null) {
             $this->offset = 0;
@@ -182,6 +174,17 @@ trait AdapterTrait
             $this->limit = $limit;
         }
         return $this;
+    }
+
+
+    /**
+     * Author:Robert
+     *
+     * @param array $conditions
+     */
+    public function setConditions(array $conditions)
+    {
+        $this->conditions = $conditions;
     }
 
 }

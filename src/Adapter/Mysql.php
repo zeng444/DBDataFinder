@@ -12,48 +12,207 @@ use Phalcon\Di;
  * Class Finder
  * @package Janfish\Swoole\Criteria
  */
-class Mysql implements AdapterInterface
+class Mysql implements AdapterInterface, DirectiveInterface
 {
     use AdapterTrait;
 
-    /**
-     * @var array
-     */
-    public $sql = [];
+    private $_holderCharIndex = 0;
 
     /**
-     * @var array
+     * @var
      */
-    public $bind = [];
+    private $_db;
 
     /**
-     * @return array
-     * @throws \Exception
+     * Author:Robert
+     *
+     * @return string
      */
-    public function fetchOne(): array
+    private function generateHolderPlaceChar()
     {
-        $this->setPagination(1);
-        return current($this->execute());
-
+        $this->_holderCharIndex++;
+        return 'h'.$this->_holderCharIndex;
     }
 
     /**
+     * Author:Robert
+     *
+     * @param $value
      * @return array
+     */
+    public function makeInFilter($value)
+    {
+        $holders = [];
+        $bind = [];
+        foreach ($value as $val) {
+            $holder = $this->generateHolderPlaceChar();
+            $holders[] = ':'.$holder;
+            $bind[$holder] = $val;
+        }
+        $sql = "IN (".implode(',', $holders).")";
+        return [$sql, $bind];
+    }
+
+    /**
+     * Author:Robert
+     *
+     * @param $value
+     * @return array
+     */
+    public function makeNotInFilter($value)
+    {
+        $holders = [];
+        $bind = [];
+        foreach ($value as $val) {
+            $holder = $this->generateHolderPlaceChar();
+            $holders[] = ':'.$holder;
+            $bind[$holder] = $val;
+        }
+        $sql = "NOT IN (".implode(',', $holders).")";
+        return [$sql, $bind];
+    }
+
+    /**
+     * Author:Robert
+     *
+     * @param $value
+     * @return array
+     */
+    public function makeNeqFilter($value)
+    {
+        $holder = $this->generateHolderPlaceChar();
+        $sql = "<> :$holder";
+        return [$sql, [$holder => $value]];
+    }
+
+
+    /**
+     * Author:Robert
+     *
+     * @param $value
+     * @return array
+     */
+    public function makeRegexFilter($value)
+    {
+        $holder = $this->generateHolderPlaceChar();
+        $sql = "LIKE :$holder";
+        return [$sql, [$holder => "%$value%"]];
+    }
+
+
+    /**
+     * Author:Robert
+     *
+     * @param $value
+     * @return array
+     */
+    public function makeEqFilter($value)
+    {
+        $holder = $this->generateHolderPlaceChar();
+        $sql = "= :$holder";
+        return [$sql, [$holder => $value]];
+    }
+
+    /**
+     * Author:Robert
+     *
+     * @param $value
+     * @return array
+     */
+    public function makeGtFilter($value)
+    {
+        $holder = $this->generateHolderPlaceChar();
+        $sql = ">= :$holder";
+        return [$sql, [$holder => $value]];
+    }
+
+    /**
+     * Author:Robert
+     *
+     * @param $value
+     * @return array
+     */
+    public function makeLtFilter($value)
+    {
+        $holder = $this->generateHolderPlaceChar();
+        $sql = "<= :$holder";
+        return [$sql, [$holder => $value]];
+    }
+
+    /**
+     * Author:Robert
+     *
+     * @param $value
+     * @return array
+     */
+    public function makeGteFilter($value)
+    {
+        $holder = $this->generateHolderPlaceChar();
+        $sql = ">= :$holder";
+        return [$sql, [$holder => $value]];
+    }
+
+    /**
+     * Author:Robert
+     *
+     * @param $value
+     * @return array
+     */
+    public function makeLteFilter($value)
+    {
+        $holder = $this->generateHolderPlaceChar();
+        $sql = "<= :$holder";
+        return [$sql, [$holder => $value]];
+    }
+
+
+    /**
+     * Author:Robert
+     *
+     * @return array
+     */
+    private function getFilters()
+    {
+        $sql = [];
+        $bind = [];
+        foreach ($this->conditions as $column => $rules) {
+            foreach ($rules as $directive => $val) {
+                $funcName = "make".ucfirst($directive)."Filter";
+                if (method_exists($this, $funcName)) {
+                    $symbol = $this->$funcName($val);
+                    $sql[] = "`$column`".' '.$symbol[0];
+                    if ($symbol[1]) {
+                        $bind = array_merge($bind, $symbol[1]);
+                    }
+                }
+            }
+        }
+        $sql = implode(' AND ', $sql);
+        return [$sql, $bind];
+    }
+
+    /**
+     * Author:Robert
+     *
      * @throws \Exception
      */
-    final function execute(): array
+    private function execute(): array
     {
-        $params = $this->generateParams();
-        list($sqlData, $bind) = $params;
-        $sql = sprintf('SELECT %s FROM %s %s %s %s', $sqlData['SELECT'], $sqlData['FROM'], $sqlData['WHERE'], $sqlData['ORDER'], $sqlData['LIMIT']);;
-        if (!$this->dbInstance) {
-            $di = Di::getDefault();
-            $this->dbInstance = $di->get('db');
-        }
-        if (!$this->dbInstance) {
-            throw new \Exception('db service not exist');
-        }
-        $items = $this->dbInstance->fetchAll($sql, Db::FETCH_ASSOC, $bind, [
+        $fetchParams = $this->getFilters();
+        print_r($fetchParams);
+        $column = $this->makeColumnSQL();
+        $table = $this->getSchemaTable();
+        $where = $fetchParams[0];
+        $where = $where ? 'WHERE '.$where : '';
+        $sort = $this->makeSortSQL();
+        $limit = ":offset,:limit";
+        $sql = sprintf('SELECT %s FROM %s %s %s LIMIT %s', $column, $table, $where, $sort, $limit);
+        $bind = array_merge($fetchParams[1], [
+            'offset' => $this->offset,
+            'limit' => $this->limit,
+        ]);
+        $db = $this->getDbConnection();
+        $items = $db->fetchAll($sql, Db::FETCH_ASSOC, $bind, [
             'offset' => \PDO::PARAM_INT,
             'limit' => \PDO::PARAM_INT,
         ]);
@@ -64,49 +223,78 @@ class Mysql implements AdapterInterface
     }
 
     /**
-     * @return array
+     * Author:Robert
+     *
+     * @param string $primaryId
+     * @return int
+     * @throws \Exception
      */
-    final function generateParams()
+    public function count(string $primaryId = 'id'): int
     {
-        $conditions = new \Janfish\Database\Criteria\Adapter\Mysql\Condition($this->conditions, [
-            'date' => $this->dateColumns,
-            'fullText' => $this->fullTextColumns,
+        $fetchParams = $this->getFilters();
+        $table = $this->getSchemaTable();
+        $where = $fetchParams[0];
+        $where = $where ? 'WHERE '.$where : '';
+        $limit = ":offset,:limit";
+        $sql = sprintf('SELECT COUNT(`%s`) AS `count` FROM %s %s LIMIT %s', $primaryId, $table, $where, $limit);
+        $bind = array_merge($fetchParams[1], [
+            'offset' => 0,
+            'limit' => 1,
         ]);
-        list($whereSql, $bind) = $conditions->generate();
-        $columns = $this->makeColumnSQL();
-        $schema = $this->schema ? "`{$this->schema}`." : '';
-        $sort = $this->makeSortSQL();
-        $this->sql['SELECT'] = $columns;
-        $this->sql['FROM'] = "{$schema}`{$this->table}`";
-        $this->sql['WHERE'] = $whereSql ? 'WHERE ' . $whereSql : '';
-        $this->sql['ORDER'] = $sort ? 'ORDER BY ' . $sort : '';
-        $this->sql['LIMIT'] = ":offset,:limit";
-        $this->bind = array_merge($bind, [
-            'offset' => $this->offset,
-            'limit' => $this->limit,
+        $db = $this->getDbConnection();
+        $result = $db->fetchOne($sql, Db::FETCH_ASSOC, $bind, [
+            'offset' => \PDO::PARAM_INT,
+            'limit' => \PDO::PARAM_INT,
         ]);
-        return [$this->sql, $this->bind];
+        return $result['count'];
     }
 
     /**
      * Author:Robert
      *
-     * @return string
+     * @return array
+     * @throws \Exception
      */
-    private function makeColumnSQL()
+    public function fetchOne(): array
     {
-        if (!$this->columns) {
-            return '*';
+        $this->setPagination(1);
+        $item = $this->execute();
+        return $item ? current($item):[];
+    }
+
+    /**
+     * Author:Robert
+     *
+     * @return array
+     * @throws \Exception
+     */
+    public function fetchAll(): array
+    {
+        return $this->execute();
+    }
+
+    /**
+     * Author:Robert
+     *
+     * @return mixed
+     * @throws \Exception
+     */
+    private function getDbConnection()
+    {
+        if ($this->_db) {
+            return $this->_db;
         }
-        $columns = [];
-        foreach ($this->columns as $field => $alias) {
-            if (is_int($field)) {
-                $columns[] = "`{$alias}`";
-            } else {
-                $columns[] = "`{$field}` AS `{$alias}`";
-            }
+        $this->_db = (Di::getDefault())->get('db');
+        if (!$this->_db) {
+            throw new \Exception('db service not exist');
         }
-        return implode(',', $columns);
+        return $this->_db;
+    }
+
+    private function getSchemaTable(): string
+    {
+        $schema = $this->schema ? "`{$this->schema}`." : '';
+        return "{$schema}`{$this->table}`";
     }
 
     /**
@@ -127,47 +315,34 @@ class Mysql implements AdapterInterface
                 } else {
                     $sql[] = "`$column` $command";
                 }
-
             }
-            return implode(',', $sql);
+            $sort = implode(',', $sql);
         } else {
-            return $this->sort;
+            $sort = $this->sort;
         }
+        return $sort ? 'ORDER BY '.$sort : '';
     }
 
     /**
-     * @return array
-     * @throws \Exception
+     * Author:Robert
+     *
+     * @return string
      */
-    public function fetchAll(): array
+    private function makeColumnSQL(): string
     {
-        return $this->execute();
-    }
+        if (!$this->columns) {
+            return '*';
+        }
+        $columns = [];
+        foreach ($this->columns as $field => $alias) {
+            if (is_int($field)) {
+                $columns[] = "`{$alias}`";
+            } else {
+                $columns[] = "`{$field}` AS `{$alias}`";
+            }
 
-    /**
-     * @param string $countKey
-     * @return int
-     * @throws \Exception
-     */
-    public function count(string $countKey = 'id'): int
-    {
-        $fetchParams = $this->generateParams();
-        if (!$this->dbInstance) {
-            $di = Di::getDefault();
-            $this->dbInstance = $di->get('db');
         }
-        if (!$this->dbInstance) {
-            throw new \Exception('db service not exist');
-        }
-        list($sqlData, $bind) = $fetchParams;
-        $sql = sprintf('SELECT COUNT(`%s`) AS `count` FROM %s %s LIMIT %s', $countKey, $sqlData['FROM'], $sqlData['WHERE'], $sqlData['LIMIT']);
-        $bind['limit'] = 1;
-        $bind['offset'] = 0;
-        $result = $this->dbInstance->fetchOne($sql, Db::FETCH_ASSOC, $bind, [
-            'offset' => \PDO::PARAM_INT,
-            'limit' => \PDO::PARAM_INT,
-        ]);
-        return $result['count'];
+        return implode(',', $columns);
     }
 
 
