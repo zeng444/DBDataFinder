@@ -319,6 +319,11 @@ class Mongo implements AdapterInterface, DirectiveInterface
         return $val->__toString();
     }
 
+    public function debug()
+    {
+        return $this->getFilters();
+    }
+
     /**
      * @return array
      * @throws \Exception

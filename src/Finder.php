@@ -23,6 +23,7 @@ use Janfish\Database\Criteria\Adapter\Mysql;
  * @method count(string $primaryId = null): int
  * @method fetchOne(): array
  * @method fetchAll(): array
+ * @method debug()
  */
 class Finder
 {

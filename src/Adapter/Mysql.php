@@ -261,6 +261,11 @@ class Mysql implements AdapterInterface, DirectiveInterface
         return $item ? current($item) : [];
     }
 
+    public function debug()
+    {
+        return $this->getFilters();
+    }
+
     /**
      * Author:Robert
      *

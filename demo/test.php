@@ -28,7 +28,7 @@ $di->setShared('db', function () {
 $find = new Finder(Finder::MONGO_MODE);
 //$find = new Finder(Finder::MYSQL_MODE);
 $find->setAliasDirectives([
-    Finder::EQUAL_DIRECTIVE => '$eq'
+    Finder::EQUAL_DIRECTIVE => '$eqdd'
 ]);
 $find->setSchema('insurance');
 $find->setTable('orderDraft');
@@ -43,7 +43,7 @@ $searchConditions = [
 //    'adminId'=>1222,
 //    'createdAt'=>["2017-12-04 16:50:40","2020-07-10"],
 //    'type'=>["TCI","VCI"],
-//    'companyId'=>["eq"=>1],
+    'companyId'=>['$eq'=>1],
 //    'source'=>["in"=>['PingAn']],
 
 //
@@ -72,9 +72,10 @@ $searchConditions = [
 //    'engineNo'=>'2'
 //];
 $find->setConditions($searchConditions);
-print_r($find->fetchOne());
-print_r($find->fetchAll());
-print_r($find->count());
+print_r($find->debug());
+//print_r($find->fetchOne());
+//print_r($find->fetchAll());
+//print_r($find->count());
 //$result = [
 //    'list' => $find->execute(),
 //    'count' => $find->count(),

@@ -41,4 +41,6 @@ interface AdapterInterface
 
     public function fetchAll(): array;
 
+    public function debug();
+
 }
