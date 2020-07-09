@@ -25,7 +25,25 @@ $di->setShared('db', function () {
     ]);
 });
 
-
+$searchConditions = [
+    'id' => 11,
+    //    'adminId' => 1222,
+    //    'createdAt' => ["2017-12-04 16:50:40", "2020-07-10"],
+    //    'type' => ["TCI", "VCI"],
+    //    'where' => 'this.adminId > 0',
+    //    'companyId' => ['eq' => 1],
+    //    'source' => ["in" => ['PingAn']],
+    //    'queryValue' => "602",
+    //    'queryValue' => ["regex" => "0008x"],
+    //    'licensePlateNo' => "232",
+    //    'col21' => ["notIn" => ['2']],
+    //    'col3' => ["neq" => '2'],
+    //    'col4' => ["gte" => '2'],
+    //    'col5' => ["lte" => '2'],
+    //    'col6' => ["neq" => 'sd'],
+    //    'col7' => ["gt" => '2'],
+    //    'col8' => ["lt" => '2'],
+];
 $finder = new Finder(Finder::MYSQL_MODE,true);
 //$finder = new Finder(Finder::MYSQL_MODE);
 //$finder->setConnection((Di::getDefault())->get('mongo'));
@@ -34,38 +52,17 @@ $finder = new Finder(Finder::MYSQL_MODE,true);
 //]);
 $finder->defineAliasColumns([
     'id'=>'nid'
-]);
-$finder->setSchema('car_insurance_genius_v2');
-$finder->setTable('insurance_order');
-$finder->defineFullTextColumns(['queryValue', 'engineNo', 'vin', 'accountNo']);
-$finder->defineDateColumns(['createdAt', 'updatedAt', 'quotedAt', 'paidAt', 'insuredAt', 'startAt', 'endAt']);
-
-$finder->setSort(['nid' => 'ASC']);
-$finder->setColumns(['companyId', 'nid', 'createdAt','orderFrom', 'type']);
-$finder->defineHideColumns(['orderFrom']);
-
-$searchConditions = [
-    'id' => 11,
-//    'adminId' => 1222,
-//    'createdAt' => ["2017-12-04 16:50:40", "2020-07-10"],
-//    'type' => ["TCI", "VCI"],
-//    'where' => 'this.adminId > 0',
-//    'companyId' => ['eq' => 1],
-//    'source' => ["in" => ['PingAn']],
-//    'queryValue' => "602",
-//    'queryValue' => ["regex" => "0008x"],
-//    'licensePlateNo' => "232",
-//    'col21' => ["notIn" => ['2']],
-//    'col3' => ["neq" => '2'],
-//    'col4' => ["gte" => '2'],
-//    'col5' => ["lte" => '2'],
-//    'col6' => ["neq" => 'sd'],
-//    'col7' => ["gt" => '2'],
-//    'col8' => ["lt" => '2'],
-];
-$finder->setPagination(0, 1);
-$finder->setConditions($searchConditions);
+])
+->setSchema('car_insurance_genius_v2')
+->setTable('insurance_order')
+->defineFullTextColumns(['queryValue', 'engineNo', 'vin', 'accountNo'])
+->defineDateColumns(['createdAt', 'updatedAt', 'quotedAt', 'paidAt', 'insuredAt', 'startAt', 'endAt'])
+->setSort(['nid' => 'ASC'])
+->setColumns(['companyId', 'nid', 'createdAt','orderFrom', 'type'])
+->defineHideColumns(['orderFrom'])
+->setPagination(0, 1)
+->setConditions($searchConditions);
 //print_r($finder->debug());
-print_r($finder->fetchAll());
-//print_r($finder->fetchAll());
-//print_r($finder->count());
+$finder->fetchAll();
+print_r($finder->fetchOne());
+print_r($finder->count());
