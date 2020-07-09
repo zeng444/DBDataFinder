@@ -168,7 +168,7 @@ class Finder
                     if (is_int($key)) {
                         $rules[$column][self::IN_DIRECTIVE] = $condition;
                     } else {
-                        $rules[$column][$this->getAliasDirective($key)] = $condition[$key];
+                        $rules[$column][$this->getAliasDirective($key) ?: $key] = $condition[$key];
                     }
                 }
             } else {
@@ -181,6 +181,19 @@ class Finder
         }
         $this->_adapter->setConditions($rules);
         return $this;
+    }
+
+    /**
+     * @param string $alias
+     * @return string
+     */
+    private function getAliasDirective(string $alias): string
+    {
+        if (!$this->_aliasMap) {
+            $this->_aliasMap = array_flip(self::$aliasDirectives);
+        }
+        return $this->_aliasMap[$alias] ?? '';
+
     }
 
     /**
@@ -216,19 +229,6 @@ class Finder
         if ($call = call_user_func_array(array($this->_adapter, $method), $parameters)) {
             return $call;
         }
-    }
-
-    /**
-     * @param string $alias
-     * @return string
-     */
-    private function getAliasDirective(string $alias): string
-    {
-        if (!$this->_aliasMap) {
-            $this->_aliasMap = array_flip(self::$aliasDirectives);
-        }
-        return isset($this->_aliasMap[$alias]) ? $this->_aliasMap[$alias] : $alias;
-
     }
 
 }
