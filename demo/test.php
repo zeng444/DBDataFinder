@@ -25,8 +25,8 @@ $di->setShared('db', function () {
 });
 
 
-$find = new Finder(Finder::MONGO_MODE);
-//$find = new Finder(Finder::MYSQL_MODE);
+//$find = new Finder(Finder::MONGO_MODE);
+$find = new Finder(Finder::MYSQL_MODE);
 $find->setAliasDirectives([
     Finder::EQUAL_DIRECTIVE => '$eqdd'
 ]);
@@ -40,9 +40,10 @@ $find->setColumns(['adminId', '_id', 'createdAt']);
 $find->setPagination(0, 100);
 $searchConditions = [
 //    'id'=>1,
-//    'adminId'=>1222,
-//    'createdAt'=>["2017-12-04 16:50:40","2020-07-10"],
+    'adminId'=>1222,
+    'createdAt'=>["2017-12-04 16:50:40","2020-07-10"],
 //    'type'=>["TCI","VCI"],
+    '$where'=>'successOrderTotal > 0',
     'companyId'=>['$eq'=>1],
 //    'source'=>["in"=>['PingAn']],
 

@@ -2,6 +2,7 @@
 
 namespace Janfish\Database\Criteria\Adapter;
 
+use Janfish\Database\Criteria\Finder;
 use Phalcon\Db;
 use Phalcon\Di;
 
@@ -170,6 +171,16 @@ class Mysql implements AdapterInterface, DirectiveInterface
     }
 
     /**
+     * @param string $directive
+     * @param string $value
+     * @return array
+     */
+    public function makeWhereFilter(string $directive, string $value)
+    {
+        return [$value, []];
+    }
+
+    /**
      * Author:Robert
      *
      * @param string $primaryId
@@ -206,13 +217,21 @@ class Mysql implements AdapterInterface, DirectiveInterface
         $sql = [];
         $bind = [];
         foreach ($this->conditions as $column => $rules) {
-            foreach ($rules as $directive => $val) {
-                $funcName = "make" . ucfirst($directive) . "Filter";
+            if(in_array($column,Finder::CONDITION_DIRECTIVES)){
+                $funcName = "make" . ucfirst($column) . "Filter";
                 if (method_exists($this, $funcName)) {
-                    $symbol = $this->$funcName($column, $val);
+                    $symbol = $this->$funcName($column, $rules);
                     $sql[] = $symbol[0];
-                    if ($symbol[1]) {
-                        $bind = array_merge($bind, $symbol[1]);
+                }
+            }else{
+                foreach ($rules as $directive => $val) {
+                    $funcName = "make" . ucfirst($directive) . "Filter";
+                    if (method_exists($this, $funcName)) {
+                        $symbol = $this->$funcName($column, $val);
+                        $sql[] = $symbol[0];
+                        if ($symbol[1]) {
+                            $bind = array_merge($bind, $symbol[1]);
+                        }
                     }
                 }
             }

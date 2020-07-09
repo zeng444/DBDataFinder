@@ -68,6 +68,13 @@ class Finder
      *
      */
     const NOT_IN_DIRECTIVE = 'notIn';
+
+    const WHERE_DIRECTIVE = 'where';
+
+    const CONDITION_DIRECTIVES = [
+        self::WHERE_DIRECTIVE
+    ];
+
     /**
      * @var array
      */
@@ -81,6 +88,7 @@ class Finder
         self::LESS_THAN_DIRECTIVE => '$lt',
         self::GREATER_THAN_EQUAL_DIRECTIVE => '$gte',
         self::LESS_THAN_EQUAL_DIRECTIVE => '$lte',
+        self::WHERE_DIRECTIVE => '$where',
     ];
 
     private $_aliasMap = [];
@@ -175,11 +183,14 @@ class Finder
             } else {
                 if (in_array($column, $this->_adapter->fullTextColumns)) {
                     $rules[$column][self::REGEX_DIRECTIVE] = $condition;
+                } elseif ($column = $this->getAliasDirective($column) ?: $column && in_array($column, self::CONDITION_DIRECTIVES)) {
+                    $rules[$column] = $condition;
                 } else {
                     $rules[$column][self::EQUAL_DIRECTIVE] = $condition;
                 }
             }
         }
+
         $this->_adapter->setConditions($rules);
         return $this;
     }

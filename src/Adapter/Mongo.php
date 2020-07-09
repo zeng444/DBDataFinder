@@ -3,6 +3,7 @@
 namespace Janfish\Database\Criteria\Adapter;
 
 use Janfish\Database\Criteria\Finder;
+use MongoDB\Operation\Find;
 use Phalcon\Di;
 
 /**
@@ -34,6 +35,7 @@ class Mongo implements AdapterInterface, DirectiveInterface
         Finder::LESS_THAN_EQUAL_DIRECTIVE => '$lte',
         Finder::IN_DIRECTIVE => '$in',
         Finder::NOT_IN_DIRECTIVE => '$nin',
+        Finder::WHERE_DIRECTIVE => '$where',
     ];
     /**
      * @var
@@ -199,11 +201,15 @@ class Mongo implements AdapterInterface, DirectiveInterface
         //生成表达式
         $filters = [];
         foreach ($this->conditions as $column => $rule) {
-            foreach ($rule as $directive => $val) {
-                $funcName = "make" . ucfirst($directive) . "Filter";
-                if (method_exists($this, $funcName)) {
-                    $symbol = $this->$funcName($column, $val);
-                    $filters[$column][$symbol[0]] = $symbol[1];
+            if (in_array($column, Finder::CONDITION_DIRECTIVES)) {
+                $filters[self::DIRECTIVE_MAP[$column]] = $rule;
+            } else {
+                foreach ($rule as $directive => $val) {
+                    $funcName = "make" . ucfirst($directive) . "Filter";
+                    if (method_exists($this, $funcName)) {
+                        $symbol = $this->$funcName($column, $val);
+                        $filters[$column][$symbol[0]] = $symbol[1];
+                    }
                 }
             }
         }
