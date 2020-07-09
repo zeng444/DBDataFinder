@@ -50,7 +50,7 @@ trait AdapterTrait
     /**
      * @var
      */
-    public $columns;
+    public $columns = [];
     /**
      * @var int
      */
