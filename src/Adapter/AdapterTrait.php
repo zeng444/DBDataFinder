@@ -10,18 +10,64 @@ namespace Janfish\Database\Criteria\Adapter;
  */
 trait AdapterTrait
 {
-
+    /**
+     * @var array
+     */
     public $conditions = [];
+
+    /**
+     * @var
+     */
     public $sort;
+
+    /**
+     * @var int
+     */
     protected $offset = 0;
+
+    /**
+     * @var int
+     */
     protected $limit = 1;
+
+    /**
+     * @var array
+     */
     public $fullTextColumns = [];
+
+    /**
+     * @var array
+     */
     public $integerColumns = [];
+
+    /**
+     * @var array
+     */
     public $doubleColumns = [];
+
+    /**
+     * @var array
+     */
     public $dateColumns = [];
+
+    /**
+     * @var
+     */
     public $schema;
+
+    /**
+     * @var
+     */
     public $table;
+
+    /**
+     * @var
+     */
     public $hideColumns;
+
+    /**
+     * @var
+     */
     public $columns;
 
     /**
@@ -101,7 +147,7 @@ trait AdapterTrait
     }
 
     /**
-     * 定义隐藏的列，SELECT *时不返回
+     * 定义隐藏的列，SELECT * 时不返回
      * Author:Robert
      *
      * @param array $columns

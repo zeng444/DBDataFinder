@@ -5,14 +5,25 @@ namespace Janfish\Database\Criteria\Adapter;
 use Janfish\Database\Criteria\Finder;
 use Phalcon\Di;
 
+/**
+ * Class Mongo
+ * @package Janfish\Database\Criteria\Adapter
+ */
 class Mongo implements AdapterInterface, DirectiveInterface
 {
+    /**
+     *
+     */
     use AdapterTrait;
 
-    private $_mongo;
-
+    /**
+     *
+     */
     const DEFAULT_PRIMARY_ID_NAME = '_id';
 
+    /**
+     *
+     */
     const DIRECTIVE_MAP = [
         Finder::EQUAL_DIRECTIVE => '$eq',
         Finder::REGEX_DIRECTIVE => '$regex',
@@ -24,29 +35,10 @@ class Mongo implements AdapterInterface, DirectiveInterface
         Finder::IN_DIRECTIVE => '$in',
         Finder::NOT_IN_DIRECTIVE => '$nin',
     ];
-
     /**
-     * Author:Robert
-     *
-     * @param string $field
-     * @param string $val
-     * @return float|int|\MongoDB\BSON\ObjectId|\MongoDB\BSON\Regex|\MongoDB\BSON\UTCDateTime|string
+     * @var
      */
-    private function formatValue(string $field, string $val)
-    {
-        if ($field === self::DEFAULT_PRIMARY_ID_NAME) {
-            $val = new \MongoDB\BSON\ObjectId($val);
-        } elseif (in_array($val, $this->fullTextColumns)) {
-            $val = new \MongoDB\BSON\Regex(preg_quote($val));
-        } elseif (in_array($val, $this->dateColumns)) {
-            $val = new \MongoDB\BSON\UTCDateTime(strtotime($val) * 1000);
-        } elseif (in_array($field, $this->integerColumns)) {
-            $val = (int)$val;
-        } elseif (in_array($field, $this->doubleColumns)) {
-            $val = (double)$val;
-        }
-        return $val;
-    }
+    private $_mongo;
 
     /**
      * Author:Robert
@@ -61,6 +53,29 @@ class Mongo implements AdapterInterface, DirectiveInterface
             $val = $this->formatValue($field, $val);
         }
         return [self::DIRECTIVE_MAP[Finder::IN_DIRECTIVE], $value];
+    }
+
+    /**
+     * Author:Robert
+     *
+     * @param string $field
+     * @param string $val
+     * @return float|int|\MongoDB\BSON\ObjectId|\MongoDB\BSON\Regex|\MongoDB\BSON\UTCDateTime|string
+     */
+    private function formatValue(string $field, string $val)
+    {
+        if ($field === self::DEFAULT_PRIMARY_ID_NAME) {
+            $val = new \MongoDB\BSON\ObjectId($val);
+        } elseif (in_array($field, $this->fullTextColumns)) {
+            $val = new \MongoDB\BSON\Regex(preg_quote($val));
+        } elseif (in_array($field, $this->dateColumns)) {
+            $val = new \MongoDB\BSON\UTCDateTime(strtotime($val) * 1000);
+        } elseif (in_array($field, $this->integerColumns)) {
+            $val = (int)$val;
+        } elseif (in_array($field, $this->doubleColumns)) {
+            $val = (double)$val;
+        }
+        return $val;
     }
 
     /**
@@ -163,6 +178,18 @@ class Mongo implements AdapterInterface, DirectiveInterface
     }
 
     /**
+     * @return int
+     * @throws \Exception
+     */
+    public function count(): int
+    {
+        $filter = $this->getFilters();
+        $mongo = $this->getMongoConnection()->selectDatabase($this->schema);
+        $collection = $mongo->selectCollection($this->table);
+        return $collection->count($filter);
+    }
+
+    /**
      * Author:Robert
      *
      * @return array
@@ -173,7 +200,7 @@ class Mongo implements AdapterInterface, DirectiveInterface
         $filters = [];
         foreach ($this->conditions as $column => $rule) {
             foreach ($rule as $directive => $val) {
-                $funcName = "make".ucfirst($directive)."Filter";
+                $funcName = "make" . ucfirst($directive) . "Filter";
                 if (method_exists($this, $funcName)) {
                     $symbol = $this->$funcName($column, $val);
                     $filters[$column][$symbol[0]] = $symbol[1];
@@ -194,13 +221,69 @@ class Mongo implements AdapterInterface, DirectiveInterface
         if ($this->_mongo) {
             return $this->_mongo;
         }
-        $this->_mongo = (Di::getDefault())->get('db');
+        $this->_mongo = (Di::getDefault())->get('mongo');
         if (!$this->_mongo) {
             throw new \Exception('db service not exist');
         }
         return $this->_mongo;
     }
 
+    /**
+     * @return array
+     * @throws \Exception
+     */
+    public function fetchOne(): array
+    {
+        $this->setPagination(1);
+        $item = $this->execute();
+        return $item ? current($item) : [];
+    }
+
+    /**
+     * @return array
+     * @throws \Exception
+     */
+    private function execute()
+    {
+        $filter = $this->getFilters();
+        $mongo = $this->getMongoConnection()->selectDatabase($this->schema);
+        $collection = $mongo->selectCollection($this->table);
+        $cursor = $collection->find($filter, [
+            'projection' => $this->makeColumnRule(),
+            'skip' => $this->offset,
+            'limit' => $this->limit,
+            'sort' => $this->makeSortRule(),
+        ]);
+        $data = [];
+        foreach ($cursor as $items) {
+            $loops = (array)$items;
+            foreach ($this->dateColumns as $col) {
+                if (isset($loops[$col])) {
+                    $loops[$col] = $this->formatDateTimeOutValue($col, $loops[$col]);
+                }
+            }
+            if (isset($loops[self::DEFAULT_PRIMARY_ID_NAME])) {
+                $loops[self::DEFAULT_PRIMARY_ID_NAME] = $this->formatPrimaryIdOutValue(self::DEFAULT_PRIMARY_ID_NAME, $loops[self::DEFAULT_PRIMARY_ID_NAME]);
+            }
+            $data[] = $loops;
+        }
+        if ($this->hideColumns) {
+            return $this->removeHideColumns($data);
+        }
+        return $data;
+    }
+
+    /**
+     * @return array
+     */
+    private function makeColumnRule(): array
+    {
+        $columns = [];
+        foreach ($this->columns as $field) {
+            $columns[$field] = 1;
+        }
+        return $columns;
+    }
 
     /**
      * Author:Robert
@@ -219,73 +302,30 @@ class Mongo implements AdapterInterface, DirectiveInterface
         return $rule;
     }
 
-    /**
-     * @return array
-     */
-    private function makeColumnRule(): array
+    private function formatDateTimeOutValue(string $field, \MongoDB\BSON\UTCDateTime $val, string $dateFormat = 'Y-m-d H:i:s'): string
     {
-        $columns = [];
-        foreach ($this->columns as $field => $alias) {
-            $columns[$field] = 1;
-        }
-        return $columns;
+        return date($dateFormat, strtotime($val->toDateTime()
+            ->setTimezone(new \DateTimeZone('PRC'))
+            ->format(DATE_RSS)));;
     }
 
     /**
-     * Author:Robert
-     *
-     * @return int
+     * @param string $field
+     * @param \MongoDB\BSON\ObjectId $val
+     * @return string
      */
-    public function count(): int
+    private function formatPrimaryIdOutValue(string $field, \MongoDB\BSON\ObjectId $val): string
     {
-        $filter = $this->getFilters();
-        $mongo = $this->getDi()->get('mongo');
-        $collection = $mongo->selectDatabase($this->schema);
-        return $collection->count($filter);
+        return $val->__toString();
     }
 
     /**
-     * Author:Robert
-     *
      * @return array
-     */
-    private function execute()
-    {
-        $filter = $this->getFilters();
-        $mongo = $this->getDi()->get('mongo');
-        $collection = $mongo->selectDatabase($this->schema);
-        $items = $collection->find($filter, [
-            'projection' => $this->makeColumnRule(),
-            'skip' => $this->offset,
-            'limit' => $this->limit,
-            'sort' =>$this->makeSortRule(),
-        ]);
-        if ($this->hideColumns) {
-            return $this->removeHideColumns($items);
-        }
-        return $items;
-    }
-
-    /**
-     * Author:Robert
-     *
-     * @return array
-     */
-    public function fetchOne(): array
-    {
-        $this->setPagination(1);
-        $item = $this->execute();
-        return $item ? current($item) : [];
-    }
-
-
-    /**
-     * Author:Robert
-     *
-     * @return array
+     * @throws \Exception
      */
     public function fetchAll(): array
     {
         return $this->execute();
     }
+
 }

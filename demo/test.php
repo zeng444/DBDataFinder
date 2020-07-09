@@ -5,9 +5,11 @@ include_once '../vendor/autoload.php';
 use Janfish\Database\Criteria\Finder as Finder;
 
 $di = new  Phalcon\Di\FactoryDefault();
+$di->set('mongo', function () {
+    return new \MongoDB\Client("mongodb://root:root@192.168.10.34/");
+});
+
 $di->setShared('db', function () {
-
-
     return new \Phalcon\Db\Adapter\Pdo\Mysql([
 //        'host' => '192.168.10.13',
         'host' => 'mysql',
@@ -23,22 +25,23 @@ $di->setShared('db', function () {
 });
 
 
-//$find = new Finder(Finder::MONGO_MODE);
-$find = new Finder(Finder::MYSQL_MODE);
-$find->setSchema('car_insurance_genius_v2');
-$find->setTable('insurance_order');
+$find = new Finder(Finder::MONGO_MODE);
+//$find = new Finder(Finder::MYSQL_MODE);
+$find->setSchema('insurance');
+$find->setTable('orderDraft');
 $find->defineFullTextColumns(['licensePlateNo', 'engineNo', 'vin', 'accountNo']);
 $find->defineDateColumns(['createdAt', 'updatedAt', 'quotedAt', 'paidAt', 'insuredAt', 'startAt', 'endAt']);
 $find->setSort(['id' => 'ASC']);
-//$find->setColumns(['source','licensePlateNo']);
-//$find->defineHideColumns(['source']);
+$find->setColumns(['adminId','_id','createdAt']);
+//$find->defineHideColumns(['_id']);
 $find->setPagination(0, 100);
 $searchConditions = [
-    'id'=>1,
-    'createdAt'=>["2017-12-04 16:50:40","2020-07-10"],
-    'type'=>["TCI","VCI"],
-    'companyId'=>["eq"=>1],
-    'source'=>["in"=>['PingAn']],
+//    'id'=>1,
+//    'adminId'=>1222,
+//    'createdAt'=>["2017-12-04 16:50:40","2020-07-10"],
+//    'type'=>["TCI","VCI"],
+//    'companyId'=>["eq"=>1],
+//    'source'=>["in"=>['PingAn']],
 
 //
 //    'licensePlateNo'=>"232",

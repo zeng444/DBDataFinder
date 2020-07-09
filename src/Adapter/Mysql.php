@@ -6,11 +6,8 @@ use Phalcon\Db;
 use Phalcon\Di;
 
 /**
- * 查询器
- * Author:Robert
- *
- * Class Finder
- * @package Janfish\Swoole\Criteria
+ * Class Mysql
+ * @package Janfish\Database\Criteria\Adapter
  */
 class Mysql implements AdapterInterface, DirectiveInterface
 {
@@ -26,17 +23,6 @@ class Mysql implements AdapterInterface, DirectiveInterface
     /**
      * Author:Robert
      *
-     * @return string
-     */
-    private function generateHolderPlaceChar()
-    {
-        $this->_holderCharIndex++;
-        return 'h'.$this->_holderCharIndex;
-    }
-
-    /**
-     * Author:Robert
-     *
      * @param $field
      * @param $value
      * @return array
@@ -47,11 +33,22 @@ class Mysql implements AdapterInterface, DirectiveInterface
         $bind = [];
         foreach ($value as $val) {
             $holder = $this->generateHolderPlaceChar();
-            $holders[] = ':'.$holder;
+            $holders[] = ':' . $holder;
             $bind[$holder] = $val;
         }
-        $sql = "`$field` IN (".implode(',', $holders).")";
+        $sql = "`$field` IN (" . implode(',', $holders) . ")";
         return [$sql, $bind];
+    }
+
+    /**
+     * Author:Robert
+     *
+     * @return string
+     */
+    private function generateHolderPlaceChar()
+    {
+        $this->_holderCharIndex++;
+        return 'h' . $this->_holderCharIndex;
     }
 
     /**
@@ -67,10 +64,10 @@ class Mysql implements AdapterInterface, DirectiveInterface
         $bind = [];
         foreach ($value as $val) {
             $holder = $this->generateHolderPlaceChar();
-            $holders[] = ':'.$holder;
+            $holders[] = ':' . $holder;
             $bind[$holder] = $val;
         }
-        $sql = "`$field` NOT IN (".implode(',', $holders).")";
+        $sql = "`$field` NOT IN (" . implode(',', $holders) . ")";
         return [$sql, $bind];
     }
 
@@ -88,7 +85,6 @@ class Mysql implements AdapterInterface, DirectiveInterface
         return [$sql, [$holder => $value]];
     }
 
-
     /**
      * Author:Robert
      *
@@ -102,7 +98,6 @@ class Mysql implements AdapterInterface, DirectiveInterface
         $sql = "`$field` LIKE :$holder";
         return [$sql, [$holder => "%$value%"]];
     }
-
 
     /**
      * Author:Robert
@@ -174,62 +169,6 @@ class Mysql implements AdapterInterface, DirectiveInterface
         return [$sql, [$holder => $value]];
     }
 
-
-    /**
-     * Author:Robert
-     *
-     * @return array
-     */
-    private function getFilters()
-    {
-        $sql = [];
-        $bind = [];
-        foreach ($this->conditions as $column => $rules) {
-            foreach ($rules as $directive => $val) {
-                $funcName = "make".ucfirst($directive)."Filter";
-                if (method_exists($this, $funcName)) {
-                    $symbol = $this->$funcName($column, $val);
-                    $sql[] = $symbol[0];
-                    if ($symbol[1]) {
-                        $bind = array_merge($bind, $symbol[1]);
-                    }
-                }
-            }
-        }
-        $sql = implode(' AND ', $sql);
-        return [$sql, $bind];
-    }
-
-    /**
-     * Author:Robert
-     *
-     * @throws \Exception
-     */
-    private function execute(): array
-    {
-        $fetchParams = $this->getFilters();
-        $column = $this->makeColumnSQL();
-        $table = $this->getSchemaTable();
-        $where = $fetchParams[0];
-        $where = $where ? 'WHERE '.$where : '';
-        $sort = $this->makeSortSQL();
-        $limit = ":offset,:limit";
-        $sql = sprintf('SELECT %s FROM %s %s %s LIMIT %s', $column, $table, $where, $sort, $limit);
-        $bind = array_merge($fetchParams[1], [
-            'offset' => $this->offset,
-            'limit' => $this->limit,
-        ]);
-        $db = $this->getDbConnection();
-        $items = $db->fetchAll($sql, Db::FETCH_ASSOC, $bind, [
-            'offset' => \PDO::PARAM_INT,
-            'limit' => \PDO::PARAM_INT,
-        ]);
-        if ($this->hideColumns) {
-            return $this->removeHideColumns($items);
-        }
-        return $items;
-    }
-
     /**
      * Author:Robert
      *
@@ -242,7 +181,7 @@ class Mysql implements AdapterInterface, DirectiveInterface
         $fetchParams = $this->getFilters();
         $table = $this->getSchemaTable();
         $where = $fetchParams[0];
-        $where = $where ? 'WHERE '.$where : '';
+        $where = $where ? 'WHERE ' . $where : '';
         $limit = ":offset,:limit";
         $sql = sprintf('SELECT COUNT(`%s`) AS `count` FROM %s %s LIMIT %s', $primaryId, $table, $where, $limit);
         $bind = array_merge($fetchParams[1], [
@@ -261,24 +200,34 @@ class Mysql implements AdapterInterface, DirectiveInterface
      * Author:Robert
      *
      * @return array
-     * @throws \Exception
      */
-    public function fetchOne(): array
+    private function getFilters()
     {
-        $this->setPagination(1);
-        $item = $this->execute();
-        return $item ? current($item) : [];
+        $sql = [];
+        $bind = [];
+        foreach ($this->conditions as $column => $rules) {
+            foreach ($rules as $directive => $val) {
+                $funcName = "make" . ucfirst($directive) . "Filter";
+                if (method_exists($this, $funcName)) {
+                    $symbol = $this->$funcName($column, $val);
+                    $sql[] = $symbol[0];
+                    if ($symbol[1]) {
+                        $bind = array_merge($bind, $symbol[1]);
+                    }
+                }
+            }
+        }
+        $sql = implode(' AND ', $sql);
+        return [$sql, $bind];
     }
 
     /**
-     * Author:Robert
-     *
-     * @return array
-     * @throws \Exception
+     * @return string
      */
-    public function fetchAll(): array
+    private function getSchemaTable(): string
     {
-        return $this->execute();
+        $schema = $this->schema ? "`{$this->schema}`." : '';
+        return "{$schema}`{$this->table}`";
     }
 
     /**
@@ -299,10 +248,47 @@ class Mysql implements AdapterInterface, DirectiveInterface
         return $this->_db;
     }
 
-    private function getSchemaTable(): string
+    /**
+     * Author:Robert
+     *
+     * @return array
+     * @throws \Exception
+     */
+    public function fetchOne(): array
     {
-        $schema = $this->schema ? "`{$this->schema}`." : '';
-        return "{$schema}`{$this->table}`";
+        $this->setPagination(1);
+        $item = $this->execute();
+        return $item ? current($item) : [];
+    }
+
+    /**
+     * Author:Robert
+     *
+     * @throws \Exception
+     */
+    private function execute(): array
+    {
+        $fetchParams = $this->getFilters();
+        $column = $this->makeColumnRule();
+        $table = $this->getSchemaTable();
+        $where = $fetchParams[0];
+        $where = $where ? 'WHERE ' . $where : '';
+        $sort = $this->makeSortRule();
+        $limit = ":offset,:limit";
+        $sql = sprintf('SELECT %s FROM %s %s %s LIMIT %s', $column, $table, $where, $sort, $limit);
+        $bind = array_merge($fetchParams[1], [
+            'offset' => $this->offset,
+            'limit' => $this->limit,
+        ]);
+        $db = $this->getDbConnection();
+        $items = $db->fetchAll($sql, Db::FETCH_ASSOC, $bind, [
+            'offset' => \PDO::PARAM_INT,
+            'limit' => \PDO::PARAM_INT,
+        ]);
+        if ($this->hideColumns) {
+            return $this->removeHideColumns($items);
+        }
+        return $items;
     }
 
     /**
@@ -310,7 +296,29 @@ class Mysql implements AdapterInterface, DirectiveInterface
      *
      * @return string
      */
-    private function makeSortSQL(): string
+    private function makeColumnRule(): string
+    {
+        if (!$this->columns) {
+            return '*';
+        }
+        $columns = [];
+        foreach ($this->columns as $field => $alias) {
+            if (is_int($field)) {
+                $columns[] = "`{$alias}`";
+            } else {
+                $columns[] = "`{$field}` AS `{$alias}`";
+            }
+
+        }
+        return implode(',', $columns);
+    }
+
+    /**
+     * Author:Robert
+     *
+     * @return string
+     */
+    private function makeSortRule(): string
     {
         if (!$this->sort) {
             return '';
@@ -328,29 +336,18 @@ class Mysql implements AdapterInterface, DirectiveInterface
         } else {
             $sort = $this->sort;
         }
-        return $sort ? 'ORDER BY '.$sort : '';
+        return $sort ? 'ORDER BY ' . $sort : '';
     }
 
     /**
      * Author:Robert
      *
-     * @return string
+     * @return array
+     * @throws \Exception
      */
-    private function makeColumnSQL(): string
+    public function fetchAll(): array
     {
-        if (!$this->columns) {
-            return '*';
-        }
-        $columns = [];
-        foreach ($this->columns as $field => $alias) {
-            if (is_int($field)) {
-                $columns[] = "`{$alias}`";
-            } else {
-                $columns[] = "`{$field}` AS `{$alias}`";
-            }
-
-        }
-        return implode(',', $columns);
+        return $this->execute();
     }
 
 

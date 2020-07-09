@@ -31,22 +31,48 @@ class Finder
 
 
     const MONGO_MODE = 'MONGO';
+    /**
+     *
+     */
+    const EQUAL_DIRECTIVE = 'eq';
+    /**
+     *
+     */
+    const REGEX_DIRECTIVE = 'regex';
+    /**
+     *
+     */
+    const GREATER_THAN_EQUAL_DIRECTIVE = 'gte';
+    /**
+     *
+     */
+    const LESS_THAN_EQUAL_DIRECTIVE = 'lte';
+    /**
+     *
+     */
+    const IN_DIRECTIVE = 'in';
+    /**
+     *
+     */
+    const NOT_EQUAL_DIRECTIVE = 'neq';
+    /**
+     *
+     */
+    const GREATER_THAN_DIRECTIVE = 'gt';
+    /**
+     *
+     */
+    const LESS_THAN_DIRECTIVE = 'lt';
+    /**
+     *
+     */
+    const NOT_IN_DIRECTIVE = 'notIn';
+
 
     /**
      * @var Mongo|Mysql
      */
-    private $_instance;
-
-
-    const EQUAL_DIRECTIVE = 'eq';
-    const REGEX_DIRECTIVE = 'regex';
-    const GREATER_THAN_EQUAL_DIRECTIVE = 'gte';
-    const LESS_THAN_EQUAL_DIRECTIVE = 'lte';
-    const IN_DIRECTIVE = 'in';
-    const NOT_EQUAL_DIRECTIVE = 'neq';
-    const GREATER_THAN_DIRECTIVE = 'gt';
-    const LESS_THAN_DIRECTIVE = 'lt';
-    const NOT_IN_DIRECTIVE = 'notIn';
+    private $_adapter;
 
     /**
      * Finder constructor.
@@ -55,7 +81,7 @@ class Finder
      */
     public function __construct($mode = self::MYSQL_MODE)
     {
-        $this->_instance = $this->getAdapter($mode);
+        $this->_adapter = $this->getAdapter($mode);
     }
 
     /**
@@ -73,11 +99,12 @@ class Finder
                 $instance = new Mongo();
                 break;
             default:
-                throw new \Exception('DB FINDER HAD  NO DRIVER');
+                throw new \Exception($mode . ' Adapter NOT SUPPORT');
                 break;
         }
         return $instance;
     }
+
 
     /**
      * 配置快捷查询命令
@@ -91,7 +118,7 @@ class Finder
         $rules = [];
         foreach ($conditions as $column => $condition) {
             if (is_array($condition)) {
-                if (in_array($column, $this->_instance->dateColumns)) {
+                if (in_array($column, $this->_adapter->dateColumns)) {
                     if (isset($condition[0]) && $condition[0]) {
                         $rules[$column][self::GREATER_THAN_EQUAL_DIRECTIVE] = $condition[0];
                     }
@@ -107,14 +134,14 @@ class Finder
                     }
                 }
             } else {
-                if (in_array($column, $this->_instance->fullTextColumns)) {
+                if (in_array($column, $this->_adapter->fullTextColumns)) {
                     $rules[$column][self::REGEX_DIRECTIVE] = $condition;
                 } else {
                     $rules[$column][self::EQUAL_DIRECTIVE] = $condition;
                 }
             }
         }
-        $this->_instance->setConditions($rules);
+        $this->_adapter->setConditions($rules);
         return $this;
     }
 
@@ -127,16 +154,16 @@ class Finder
     public function defineTypeColumns(array $columns)
     {
         if (isset($columns['date'])) {
-            $this->_instance->defineDateColumns($columns['date']);
+            $this->_adapter->defineDateColumns($columns['date']);
         }
         if (isset($columns['double'])) {
-            $this->_instance->defineDoubleColumns($columns['double']);
+            $this->_adapter->defineDoubleColumns($columns['double']);
         }
         if (isset($columns['integer'])) {
-            $this->_instance->defineIntegerColumns($columns['integer']);
+            $this->_adapter->defineIntegerColumns($columns['integer']);
         }
         if (isset($columns['fullText'])) {
-            $this->_instance->defineFullTextColumns($columns['fullText']);
+            $this->_adapter->defineFullTextColumns($columns['fullText']);
         }
         return $this;
     }
@@ -148,7 +175,7 @@ class Finder
      */
     public function __call($method, $parameters)
     {
-        if ($call = call_user_func_array(array($this->_instance, $method), $parameters)) {
+        if ($call = call_user_func_array(array($this->_adapter, $method), $parameters)) {
             return $call;
         }
     }
