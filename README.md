@@ -4,13 +4,16 @@
 
 ```
 $finderer = new Finder(Finder::MONGO_MODE);
-//$finder = new Finder(Finder::MYSQL_MODE);
+//$finder = new Finder(Finder::MYSQL_MODE);\
 $finder->setConnection((Di::getDefault())->get('mongo'));
 $finder->setAliasDirectives([
     Finder::EQUAL_DIRECTIVE => '='
 ]);
 $finder->setSchema('insurance');
 $finder->setTable('orderDraft');
+$finder->defineAliasColumns([
+    'id'=>'nid'
+]);
 $finder->defineFullTextColumns(['queryValue', 'engineNo', 'vin', 'accountNo']);
 $finder->defineDateColumns(['createdAt', 'updatedAt', 'quotedAt', 'paidAt', 'insuredAt', 'startAt', 'endAt']);
 $finder->setSort(['id' => 'ASC']);

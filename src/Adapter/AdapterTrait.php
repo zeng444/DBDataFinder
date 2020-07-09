@@ -43,10 +43,7 @@ trait AdapterTrait
      * @var
      */
     public $table;
-    /**
-     * @var
-     */
-    public $hideColumns;
+
     /**
      * @var
      */
@@ -136,35 +133,7 @@ trait AdapterTrait
         return $this;
     }
 
-    /**
-     * 定义隐藏的列，SELECT * 时不返回
-     * Author:Robert
-     *
-     * @param array $columns
-     * @return $this
-     */
-    public function defineHideColumns(array $columns)
-    {
-        $this->hideColumns = $columns;
-        return $this;
-    }
 
-    /**
-     * Author:Robert
-     *
-     * @param array $items
-     * @return array
-     */
-    public function removeHideColumns(array $items)
-    {
-        $rules = [];
-        foreach ($this->hideColumns as $rule) {
-            $rules[$rule] = 0;
-        }
-        return array_map(function ($item) use ($rules) {
-            return array_diff_key($item, $rules);
-        }, $items);
-    }
 
     /**
      *

@@ -269,17 +269,6 @@ class Mongo implements AdapterInterface, DirectiveInterface
      * @return array
      * @throws \Exception
      */
-    public function fetchOne(): array
-    {
-        $this->setPagination(1);
-        $item = $this->execute();
-        return $item ? current($item) : [];
-    }
-
-    /**
-     * @return array
-     * @throws \Exception
-     */
     public function execute(): array
     {
         $filter = $this->getFilters();
@@ -303,9 +292,6 @@ class Mongo implements AdapterInterface, DirectiveInterface
                 $loops[self::DEFAULT_PRIMARY_ID_NAME] = $this->formatPrimaryIdOutValue(self::DEFAULT_PRIMARY_ID_NAME, $loops[self::DEFAULT_PRIMARY_ID_NAME]);
             }
             $data[] = $loops;
-        }
-        if ($this->hideColumns) {
-            return $this->removeHideColumns($data);
         }
         return $data;
     }
@@ -359,15 +345,6 @@ class Mongo implements AdapterInterface, DirectiveInterface
     public function debug()
     {
         return $this->getFilters();
-    }
-
-    /**
-     * @return array
-     * @throws \Exception
-     */
-    public function fetchAll(): array
-    {
-        return $this->execute();
     }
 
 }

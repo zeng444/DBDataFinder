@@ -6,9 +6,9 @@ use Janfish\Database\Criteria\Finder as Finder;
 use Phalcon\Di;
 
 $di = new  Phalcon\Di\FactoryDefault();
-$di->set('mongo', function () {
-    return new \MongoDB\Client("mongodb://root:root@192.168.10.34/");
-});
+//$di->set('mongo', function () {
+//    return new \MongoDB\Client("mongodb://root:root@192.168.10.34/");
+//});
 
 $di->setShared('db', function () {
     return new \Phalcon\Db\Adapter\Pdo\Mysql([
@@ -26,26 +26,30 @@ $di->setShared('db', function () {
 });
 
 
-$finder = new Finder(Finder::MONGO_MODE,true);
+$finder = new Finder(Finder::MYSQL_MODE,true);
 //$finder = new Finder(Finder::MYSQL_MODE);
-$finder->setConnection((Di::getDefault())->get('mongo'));
-$finder->setAliasDirectives([
-    Finder::EQUAL_DIRECTIVE => '$eqdd'
+//$finder->setConnection((Di::getDefault())->get('mongo'));
+//$finder->setAliasDirectives([
+//    Finder::EQUAL_DIRECTIVE => '$eqdd'
+//]);
+$finder->defineAliasColumns([
+    'id'=>'nid'
 ]);
-$finder->setSchema('insurance');
-$finder->setTable('orderDraft');
+$finder->setSchema('car_insurance_genius_v2');
+$finder->setTable('insurance_order');
 $finder->defineFullTextColumns(['queryValue', 'engineNo', 'vin', 'accountNo']);
 $finder->defineDateColumns(['createdAt', 'updatedAt', 'quotedAt', 'paidAt', 'insuredAt', 'startAt', 'endAt']);
-$finder->setSort(['id' => 'ASC']);
-$finder->setColumns(['adminId', '_id', 'createdAt', 'queryValue']);
-//$finder->defineHideColumns(['_id']);
-$finder->setPagination(0, 100);
+
+$finder->setSort(['nid' => 'ASC']);
+$finder->setColumns(['companyId', 'nid', 'createdAt','orderFrom', 'type']);
+$finder->defineHideColumns(['orderFrom']);
+
 $searchConditions = [
-//    'id' => 1,
+    'id' => 11,
 //    'adminId' => 1222,
 //    'createdAt' => ["2017-12-04 16:50:40", "2020-07-10"],
 //    'type' => ["TCI", "VCI"],
-    'where' => 'this.adminId > 0',
+//    'where' => 'this.adminId > 0',
 //    'companyId' => ['eq' => 1],
 //    'source' => ["in" => ['PingAn']],
 //    'queryValue' => "602",
@@ -59,8 +63,9 @@ $searchConditions = [
 //    'col7' => ["gt" => '2'],
 //    'col8' => ["lt" => '2'],
 ];
+$finder->setPagination(0, 1);
 $finder->setConditions($searchConditions);
-print_r($finder->debug());
+//print_r($finder->debug());
 print_r($finder->fetchAll());
 //print_r($finder->fetchAll());
 //print_r($finder->count());

@@ -294,18 +294,7 @@ class Mysql implements AdapterInterface, DirectiveInterface
         }
     }
 
-    /**
-     * Author:Robert
-     *
-     * @return array
-     * @throws \Exception
-     */
-    public function fetchOne(): array
-    {
-        $this->setPagination(1);
-        $item = $this->execute();
-        return $item ? current($item) : [];
-    }
+
 
     /**
      * Author:Robert
@@ -327,14 +316,10 @@ class Mysql implements AdapterInterface, DirectiveInterface
             'limit' => $this->limit,
         ]);
         $db = $this->getConnection();
-        $items = $db->fetchAll($sql, Db::FETCH_ASSOC, $bind, [
+        return $db->fetchAll($sql, Db::FETCH_ASSOC, $bind, [
             'offset' => \PDO::PARAM_INT,
             'limit' => \PDO::PARAM_INT,
         ]);
-        if ($this->hideColumns) {
-            return $this->removeHideColumns($items);
-        }
-        return $items;
     }
 
     /**
@@ -390,16 +375,7 @@ class Mysql implements AdapterInterface, DirectiveInterface
         return $this->getFilters();
     }
 
-    /**
-     * Author:Robert
-     *
-     * @return array
-     * @throws \Exception
-     */
-    public function fetchAll(): array
-    {
-        return $this->execute();
-    }
+
 
 
 }

@@ -2,6 +2,7 @@
 
 namespace Janfish\Database\Criteria;
 
+use Janfish\Database\Criteria\Adapter\AdapterTrait;
 use Janfish\Database\Criteria\Adapter\Mongo;
 use Janfish\Database\Criteria\Adapter\Mysql;
 
@@ -15,15 +16,8 @@ use Janfish\Database\Criteria\Adapter\Mysql;
  * @method defineIntegerColumns(array $schema)
  * @method defineDateColumns(array $schema)
  * @method defineFullTextColumns(array $schema)
- * @method defineHideColumns(array $schema)
- * @method removeHideColumns(array $schema)
- * @method setColumns(array $schema)
- * @method setSort(array $schema)
  * @method setPagination(int $offset, int $limit = null)
  * @method setConnection($connection)
- * @method count(string $primaryId = null): int
- * @method fetchOne(): array
- * @method fetchAll(): array
  * @method execute(): array
  * @method debug()
  */
@@ -74,7 +68,7 @@ class Finder
     const WHERE_DIRECTIVE = 'where';
 
     const CONDITION_DIRECTIVES = [
-        self::WHERE_DIRECTIVE
+        self::WHERE_DIRECTIVE,
     ];
 
     /**
@@ -105,6 +99,20 @@ class Finder
     private $_autoFullSearch = true;
 
     /**
+     * @var
+     */
+    private $_hideColumns;
+
+    /**
+     * @var
+     */
+    private $_aliasColumns = [];
+    /**
+     * @var array
+     */
+    private $_flipAliasColumns = [];
+
+    /**
      * Finder constructor.
      * @param string $mode
      * @param bool $autoFullSearch
@@ -132,7 +140,7 @@ class Finder
                 $instance = new Mongo($autoFullSearch);
                 break;
             default:
-                throw new \Exception($mode . ' Adapter NOT SUPPORT');
+                throw new \Exception($mode.' Adapter NOT SUPPORT');
                 break;
         }
         return $instance;
@@ -164,6 +172,38 @@ class Finder
     }
 
     /**
+     * Author:Robert
+     *
+     * @param array $rule
+     * @return $this
+     */
+    public function setSort(array $rule)
+    {
+        $rules = [];
+        foreach ($rule as $column => $val) {
+            $rules[$this->getSourceColumn($column)] = $val;
+        }
+        $this->_adapter->setSort($rules);
+        return $this;
+    }
+
+    /**
+     * Author:Robert
+     *
+     * @param array $columns
+     * @return $this
+     */
+    public function setColumns(array $columns)
+    {
+        foreach ($columns as &$val) {
+            $val = $this->getSourceColumn($val);
+        }
+        $this->_adapter->setColumns($columns);
+        return $this;
+    }
+
+
+    /**
      * 配置快捷查询命令
      * Author:Robert
      *
@@ -175,6 +215,7 @@ class Finder
         $rules = [];
         foreach ($conditions as $column => $condition) {
             if (is_array($condition)) {
+                $column = $this->getSourceColumn($column);
                 if (in_array($column, $this->_adapter->dateColumns)) {
                     if (isset($condition[0]) && $condition[0]) {
                         $rules[$column][self::GREATER_THAN_EQUAL_DIRECTIVE] = $condition[0];
@@ -191,14 +232,15 @@ class Finder
                     }
                 }
             } else {
-                if ($this->_autoFullSearch && in_array($column, $this->_adapter->fullTextColumns)) {
-                    $rules[$column][self::REGEX_DIRECTIVE] = $condition;
+                $sourceColumn = $this->getSourceColumn($column);
+                if ($this->_autoFullSearch && in_array($sourceColumn, $this->_adapter->fullTextColumns)) {
+                    $rules[$sourceColumn][self::REGEX_DIRECTIVE] = $condition;
                 } else {
                     $column = $this->getAliasDirective($column) ?: $column;
                     if (in_array($column, self::CONDITION_DIRECTIVES)) {
                         $rules[$column] = $condition;
                     } else {
-                        $rules[$column][self::EQUAL_DIRECTIVE] = $condition;
+                        $rules[$sourceColumn][self::EQUAL_DIRECTIVE] = $condition;
                     }
                 }
             }
@@ -217,8 +259,32 @@ class Finder
             $this->_aliasMap = array_flip(self::$aliasDirectives);
         }
         return $this->_aliasMap[$alias] ?? '';
-
     }
+
+    /**
+     * Author:Robert
+     *
+     * @param string $column
+     * @return string
+     */
+    private function getSourceColumn(string $column): string
+    {
+        return $this->_flipAliasColumns[$column] ?? $column;
+    }
+
+    /**
+     * Author:Robert
+     *
+     * @param array $aliasMap
+     * @return $this
+     */
+    public function defineAliasColumns(array $aliasMap)
+    {
+        $this->_aliasColumns = $aliasMap;
+        $this->_flipAliasColumns = array_flip($this->_aliasColumns);
+        return $this;
+    }
+
 
     /**
      * Author:Robert
@@ -254,5 +320,83 @@ class Finder
             return $call;
         }
     }
+
+    /**
+     * Author:Robert
+     *
+     * @return int
+     * @throws \Exception
+     */
+    public function count(): int
+    {
+        return $this->_adapter->count();
+    }
+
+    /**
+     * Author:Robert
+     *
+     * @return array
+     * @throws \Exception
+     */
+    public function fetchAll(): array
+    {
+        $items = $this->_adapter->execute();
+        return $this->afterFetchEvent($items);
+    }
+
+
+    /**
+     * @return array
+     * @throws \Exception
+     */
+    public function fetchOne(): array
+    {
+        $this->_adapter->setPagination(1);
+        $item = $this->fetchAll();
+        return $item ? current($item) : [];
+    }
+
+    /**
+     * 定义隐藏的列，SELECT * 时不返回
+     * Author:Robert
+     *
+     * @param array $columns
+     * @return $this
+     */
+    public function defineHideColumns(array $columns)
+    {
+        $rules = [];
+        foreach ($columns as $rule) {
+            $rules[$rule] = 0;
+        }
+        $this->_hideColumns = $rules;
+        return $this;
+    }
+
+    /**
+     * Author:Robert
+     *
+     * @param array $items
+     * @return array
+     */
+    private function afterFetchEvent(array $items): array
+    {
+        if ($this->_hideColumns || $this->_aliasColumns) {
+            return array_map(function ($item) {
+                foreach ($this->_aliasColumns as $column => $aliasColumn) {
+                    if (isset($item[$column])) {
+                        $item[$aliasColumn] = $item[$column];
+                        unset($item[$column]);
+                    }
+                }
+                if ($this->_hideColumns) {
+                    $item = array_diff_key($item, $this->_hideColumns);
+                }
+                return $item;
+            }, $items);
+        }
+        return $items;
+    }
+
 
 }

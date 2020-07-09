@@ -47,17 +47,6 @@ interface AdapterInterface
      */
     public function defineFullTextColumns(array $columns);
 
-    /**
-     * @param array $columns
-     * @return mixed
-     */
-    public function defineHideColumns(array $columns);
-
-    /**
-     * @param array $columns
-     * @return mixed
-     */
-    public function removeHideColumns(array $columns);
 
     /**
      * @param int $offset
@@ -89,15 +78,6 @@ interface AdapterInterface
      */
     public function count(): int;
 
-    /**
-     * @return array
-     */
-    public function fetchOne(): array;
-
-    /**
-     * @return array
-     */
-    public function fetchAll(): array;
 
     /**
      * @return array
