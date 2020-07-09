@@ -72,7 +72,7 @@ class Mongo implements AdapterInterface, DirectiveInterface
      * @param string $val
      * @return float|int|\MongoDB\BSON\ObjectId|\MongoDB\BSON\Regex|\MongoDB\BSON\UTCDateTime|string
      */
-    private function formatValue(string $field, string $val)
+    private function formatValue(string $field, $val)
     {
         if ($field === self::DEFAULT_PRIMARY_ID_NAME) {
             $val = new \MongoDB\BSON\ObjectId($val);
