@@ -43,7 +43,7 @@ class Mongo implements AdapterInterface, DirectiveInterface
     /**
      * @var
      */
-    private $_mongo;
+    private $_connection;
 
     public function __construct(bool $autoFullSearch = true)
     {
@@ -194,7 +194,7 @@ class Mongo implements AdapterInterface, DirectiveInterface
     public function count(): int
     {
         $filter = $this->getFilters();
-        $mongo = $this->getMongoConnection()->selectDatabase($this->schema);
+        $mongo = $this->getConnection()->selectDatabase($this->schema);
         $collection = $mongo->selectCollection($this->table);
         return $collection->count($filter);
     }
@@ -230,16 +230,28 @@ class Mongo implements AdapterInterface, DirectiveInterface
      * @return mixed
      * @throws \Exception
      */
-    private function getMongoConnection()
+    private function getConnection()
     {
-        if ($this->_mongo) {
-            return $this->_mongo;
+        if ($this->_connection) {
+            return $this->_connection;
         }
-        $this->_mongo = (Di::getDefault())->get('mongo');
-        if (!$this->_mongo) {
+        $this->setConnection();
+        if (!$this->_connection) {
             throw new \Exception('db service not exist');
         }
-        return $this->_mongo;
+        return $this->_connection;
+    }
+
+    /**
+     * @param null $connection
+     */
+    public function setConnection($connection = null)
+    {
+        if ($connection) {
+            $this->_connection = $connection;
+        } else {
+            $this->_connection = (Di::getDefault())->get('mongo');
+        }
     }
 
     /**
@@ -260,7 +272,7 @@ class Mongo implements AdapterInterface, DirectiveInterface
     private function execute()
     {
         $filter = $this->getFilters();
-        $mongo = $this->getMongoConnection()->selectDatabase($this->schema);
+        $mongo = $this->getConnection()->selectDatabase($this->schema);
         $collection = $mongo->selectCollection($this->table);
         $cursor = $collection->find($filter, [
             'projection' => $this->makeColumnRule(),

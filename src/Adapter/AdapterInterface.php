@@ -43,4 +43,6 @@ interface AdapterInterface
 
     public function debug();
 
+    public function setConnection($connection =null);
+
 }

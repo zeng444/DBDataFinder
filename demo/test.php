@@ -3,6 +3,7 @@ include_once '../vendor/autoload.php';
 
 
 use Janfish\Database\Criteria\Finder as Finder;
+use Phalcon\Di;
 
 $di = new  Phalcon\Di\FactoryDefault();
 $di->set('mongo', function () {
@@ -27,6 +28,7 @@ $di->setShared('db', function () {
 
 $finder = new Finder(Finder::MONGO_MODE,false);
 //$finder = new Finder(Finder::MYSQL_MODE);
+$finder->setConnection((Di::getDefault())->get('mongo'));
 $finder->setAliasDirectives([
     Finder::EQUAL_DIRECTIVE => '$eqdd'
 ]);

@@ -20,6 +20,7 @@ use Janfish\Database\Criteria\Adapter\Mysql;
  * @method setColumns(array $schema)
  * @method setSort(array $schema)
  * @method setPagination(int $offset, int $limit = null)
+ * @method setConnection($connection)
  * @method count(string $primaryId = null): int
  * @method fetchOne(): array
  * @method fetchAll(): array

@@ -19,7 +19,7 @@ class Mysql implements AdapterInterface, DirectiveInterface
     /**
      * @var
      */
-    private $_db;
+    private $_connection;
 
     /**
      * @var bool
@@ -214,7 +214,7 @@ class Mysql implements AdapterInterface, DirectiveInterface
             'offset' => 0,
             'limit' => 1,
         ]);
-        $db = $this->getDbConnection();
+        $db = $this->getConnection();
         $result = $db->fetchOne($sql, Db::FETCH_ASSOC, $bind, [
             'offset' => \PDO::PARAM_INT,
             'limit' => \PDO::PARAM_INT,
@@ -270,16 +270,28 @@ class Mysql implements AdapterInterface, DirectiveInterface
      * @return mixed
      * @throws \Exception
      */
-    private function getDbConnection()
+    private function getConnection()
     {
-        if ($this->_db) {
-            return $this->_db;
+        if ($this->_connection) {
+            return $this->_connection;
         }
-        $this->_db = (Di::getDefault())->get('db');
-        if (!$this->_db) {
+        $this->setConnection();
+        if (!$this->_connection) {
             throw new \Exception('db service not exist');
         }
-        return $this->_db;
+        return $this->_connection;
+    }
+
+    /**
+     * @param null $connection
+     */
+    public function setConnection($connection = null)
+    {
+        if ($connection) {
+            $this->_connection = $connection;
+        }else{
+            $this->_connection = (Di::getDefault())->get('db');
+        }
     }
 
     /**
@@ -314,7 +326,7 @@ class Mysql implements AdapterInterface, DirectiveInterface
             'offset' => $this->offset,
             'limit' => $this->limit,
         ]);
-        $db = $this->getDbConnection();
+        $db = $this->getConnection();
         $items = $db->fetchAll($sql, Db::FETCH_ASSOC, $bind, [
             'offset' => \PDO::PARAM_INT,
             'limit' => \PDO::PARAM_INT,
