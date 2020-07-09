@@ -336,12 +336,15 @@ class Finder
      * Author:Robert
      *
      * @return array
-     * @throws \Exception
      */
     public function fetchAll(): array
     {
-        $items = $this->_adapter->execute();
-        return $this->afterFetchEvent($items);
+        try {
+            return $this->afterFetchEvent($this->_adapter->execute());
+        } catch (\Exception $e) {
+            return [];
+        }
+
     }
 
 
