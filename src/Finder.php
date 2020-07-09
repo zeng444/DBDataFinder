@@ -10,16 +10,6 @@ use Janfish\Database\Criteria\Adapter\Mysql;
  *
  * Class Finder
  * @package Janfish\Database\Criteria
- * @method setSchema(string $schema): this
- * @method setTable(string $schema)
- * @method defineDoubleColumns(array $schema)
- * @method defineIntegerColumns(array $schema)
- * @method defineDateColumns(array $schema)
- * @method defineFullTextColumns(array $schema)
- * @method setPagination(int $offset, int $limit = null)
- * @method setConnection($connection)
- * @method execute(): array
- * @method debug()
  */
 class Finder
 {
@@ -65,8 +55,14 @@ class Finder
      */
     const NOT_IN_DIRECTIVE = 'notIn';
 
+    /**
+     *
+     */
     const WHERE_DIRECTIVE = 'where';
 
+    /**
+     *
+     */
     const CONDITION_DIRECTIVES = [
         self::WHERE_DIRECTIVE,
     ];
@@ -96,7 +92,7 @@ class Finder
     /**
      * @var bool
      */
-    private $_autoFullSearch = true;
+    private $_autoFullSearch;
 
     /**
      * @var
@@ -148,27 +144,23 @@ class Finder
 
     /**
      * @param array $directives
-     * @return $this
      */
     public function setAliasDirectives(array $directives)
     {
         foreach ($directives as $directive => $alias) {
             $this->setAliasDirective($directive, $alias);
         }
-        return $this;
     }
 
     /**
      * @param string $directive
      * @param string $alias
-     * @return $this
      */
     public function setAliasDirective(string $directive, string $alias)
     {
         if (isset(self::$aliasDirectives[$directive])) {
             self::$aliasDirectives[$directive] = $alias;
         }
-        return $this;
     }
 
     /**
@@ -344,13 +336,23 @@ class Finder
         } catch (\Exception $e) {
             return [];
         }
+    }
 
+    /**
+     * Author:Robert
+     *
+     * @return array
+     */
+    public function execute(): array
+    {
+        return $this->fetchAll();
     }
 
 
     /**
+     * Author:Robert
+     *
      * @return array
-     * @throws \Exception
      */
     public function fetchOne(): array
     {
@@ -402,4 +404,111 @@ class Finder
     }
 
 
+    /**
+     * Author:Robert
+     *
+     * @param string $schema
+     * @return $this
+     */
+    public function setSchema(string $schema)
+    {
+        $this->_adapter->setSchema($schema);
+        return $this;
+    }
+
+    /**
+     * Author:Robert
+     *
+     * @param string $table
+     * @return $this
+     */
+    public function setTable(string $table)
+    {
+        $this->_adapter->setTable($table);
+        return $this;
+    }
+
+    /**
+     * Author:Robert
+     *
+     * @param array $schema
+     * @return $this
+     */
+    public function defineDoubleColumns(array $schema)
+    {
+        $this->_adapter->defineDoubleColumns($schema);
+        return $this;
+    }
+
+    /**
+     * Author:Robert
+     *
+     * @param array $schema
+     * @return $this
+     */
+    public function defineIntegerColumns(array $schema)
+    {
+        $this->_adapter->defineIntegerColumns($schema);
+        return $this;
+    }
+
+    /**
+     * Author:Robert
+     *
+     * @param array $schema
+     * @return $this
+     */
+    public function defineDateColumns(array $schema)
+    {
+        $this->_adapter->defineDateColumns($schema);
+        return $this;
+    }
+
+    /**
+     * Author:Robert
+     *
+     * @param array $schema
+     * @return $this
+     */
+    public function defineFullTextColumns(array $schema)
+    {
+        $this->_adapter->defineFullTextColumns($schema);
+        return $this;
+    }
+
+    /**
+     * Author:Robert
+     *
+     * @param int $offset
+     * @param int|null $limit
+     * @return $this
+     */
+    public function setPagination(int $offset, int $limit = null)
+    {
+        $this->_adapter->setPagination($offset, $limit);
+        return $this;
+    }
+
+    /**
+     * Author:Robert
+     *
+     * @param $connection
+     * @return $this
+     */
+    public function setConnection($connection)
+    {
+        $this->_adapter->setConnection($connection);
+        return $this;
+    }
+
+    /**
+     * Author:Robert
+     *
+     * @return $this
+     */
+    public function debug()
+    {
+        $this->_adapter->debug();
+        return $this;
+    }
 }

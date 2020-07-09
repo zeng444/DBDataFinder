@@ -61,12 +61,10 @@ trait AdapterTrait
      * Author:Robert
      *
      * @param string $schema
-     * @return $this
      */
     public function setSchema(string $schema)
     {
         $this->schema = $schema;
-        return $this;
     }
 
     /**
@@ -74,12 +72,10 @@ trait AdapterTrait
      * Author:Robert
      *
      * @param $table
-     * @return $this
      */
     public function setTable(string $table)
     {
         $this->table = $table;
-        return $this;
     }
 
 
@@ -87,24 +83,20 @@ trait AdapterTrait
      * Author:Robert
      *
      * @param array $columns
-     * @return $this
      */
     public function defineDoubleColumns(array $columns)
     {
         $this->doubleColumns = $columns;
-        return $this;
     }
 
     /**
      * Author:Robert
      *
      * @param array $columns
-     * @return $this
      */
     public function defineIntegerColumns(array $columns)
     {
         $this->integerColumns = $columns;
-        return $this;
     }
 
     /**
@@ -112,12 +104,10 @@ trait AdapterTrait
      * Author:Robert
      *
      * @param array $columns
-     * @return $this
      */
     public function defineDateColumns(array $columns)
     {
         $this->dateColumns = $columns;
-        return $this;
     }
 
     /**
@@ -125,14 +115,11 @@ trait AdapterTrait
      * Author:Robert
      *
      * @param array $columns
-     * @return $this
      */
     public function defineFullTextColumns(array $columns)
     {
         $this->fullTextColumns = $columns;
-        return $this;
     }
-
 
 
     /**
@@ -140,12 +127,10 @@ trait AdapterTrait
      * Author:Robert
      *
      * @param array $columns
-     * @return $this
      */
     public function setColumns(array $columns)
     {
         $this->columns = $columns;
-        return $this;
     }
 
 
@@ -154,12 +139,10 @@ trait AdapterTrait
      * Author:Robert
      *
      * @param  $rule
-     * @return $this
      */
     public function setSort(array $rule)
     {
         $this->sort = $rule;
-        return $this;
     }
 
     /**
@@ -167,7 +150,6 @@ trait AdapterTrait
      *
      * @param int $offset
      * @param int|null $limit
-     * @return $this
      */
     public function setPagination(int $offset, int $limit = null)
     {
@@ -178,7 +160,6 @@ trait AdapterTrait
             $this->offset = $offset;
             $this->limit = $limit;
         }
-        return $this;
     }
 
 
