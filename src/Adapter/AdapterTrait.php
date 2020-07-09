@@ -19,56 +19,46 @@ trait AdapterTrait
      * @var
      */
     public $sort;
-
-    /**
-     * @var int
-     */
-    protected $offset = 0;
-
-    /**
-     * @var int
-     */
-    protected $limit = 1;
-
     /**
      * @var array
      */
     public $fullTextColumns = [];
-
     /**
      * @var array
      */
     public $integerColumns = [];
-
     /**
      * @var array
      */
     public $doubleColumns = [];
-
     /**
      * @var array
      */
     public $dateColumns = [];
-
     /**
      * @var
      */
     public $schema;
-
     /**
      * @var
      */
     public $table;
-
     /**
      * @var
      */
     public $hideColumns;
-
     /**
      * @var
      */
     public $columns;
+    /**
+     * @var int
+     */
+    protected $offset = 0;
+    /**
+     * @var int
+     */
+    protected $limit = 1;
 
     /**
      * Author:Robert
@@ -89,7 +79,7 @@ trait AdapterTrait
      * @param $table
      * @return $this
      */
-    public function setTable($table)
+    public function setTable(string $table)
     {
         $this->table = $table;
         return $this;

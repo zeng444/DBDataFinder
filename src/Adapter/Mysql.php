@@ -94,7 +94,7 @@ class Mysql implements AdapterInterface, DirectiveInterface
      * @param $value
      * @return array
      */
-    public function makeNeqFilter(string $field, string $value)
+    public function makeNeqFilter(string $field, $value)
     {
         $holder = $this->generateHolderPlaceChar();
         $sql = "`$field` <> :$holder";
@@ -108,7 +108,7 @@ class Mysql implements AdapterInterface, DirectiveInterface
      * @param $value
      * @return array
      */
-    public function makeRegexFilter(string $field, string $value)
+    public function makeRegexFilter(string $field, $value)
     {
         $holder = $this->generateHolderPlaceChar();
         $sql = "`$field` LIKE :$holder";
@@ -122,7 +122,7 @@ class Mysql implements AdapterInterface, DirectiveInterface
      * @param $value
      * @return array
      */
-    public function makeEqFilter(string $field, string $value)
+    public function makeEqFilter(string $field, $value)
     {
         $holder = $this->generateHolderPlaceChar();
         $sql = "`$field` = :$holder";
@@ -136,7 +136,7 @@ class Mysql implements AdapterInterface, DirectiveInterface
      * @param $value
      * @return array
      */
-    public function makeGtFilter(string $field, string $value)
+    public function makeGtFilter(string $field, $value)
     {
         $holder = $this->generateHolderPlaceChar();
         $sql = "`$field` >= :$holder";
@@ -150,7 +150,7 @@ class Mysql implements AdapterInterface, DirectiveInterface
      * @param $value
      * @return array
      */
-    public function makeLtFilter(string $field, string $value)
+    public function makeLtFilter(string $field, $value)
     {
         $holder = $this->generateHolderPlaceChar();
         $sql = "`$field` <= :$holder";
@@ -164,7 +164,7 @@ class Mysql implements AdapterInterface, DirectiveInterface
      * @param $value
      * @return array
      */
-    public function makeGteFilter(string $field, string $value)
+    public function makeGteFilter(string $field, $value)
     {
         $holder = $this->generateHolderPlaceChar();
         $sql = "`$field` >= :$holder";
@@ -178,7 +178,7 @@ class Mysql implements AdapterInterface, DirectiveInterface
      * @param $value
      * @return array
      */
-    public function makeLteFilter(string $field, string $value)
+    public function makeLteFilter(string $field, $value)
     {
         $holder = $this->generateHolderPlaceChar();
         $sql = "`$field` <= :$holder";
@@ -190,7 +190,7 @@ class Mysql implements AdapterInterface, DirectiveInterface
      * @param string $value
      * @return array
      */
-    public function makeWhereFilter(string $directive, string $value)
+    public function makeWhereFilter(string $directive, $value)
     {
         return [$value, []];
     }
@@ -289,7 +289,7 @@ class Mysql implements AdapterInterface, DirectiveInterface
     {
         if ($connection) {
             $this->_connection = $connection;
-        }else{
+        } else {
             $this->_connection = (Di::getDefault())->get('db');
         }
     }
@@ -312,7 +312,7 @@ class Mysql implements AdapterInterface, DirectiveInterface
      *
      * @throws \Exception
      */
-    private function execute(): array
+    public function execute(): array
     {
         $fetchParams = $this->getFilters();
         $column = $this->makeColumnRule();

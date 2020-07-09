@@ -110,7 +110,7 @@ class Mongo implements AdapterInterface, DirectiveInterface
      * @param $value
      * @return array
      */
-    public function makeNeqFilter(string $field, string $value)
+    public function makeNeqFilter(string $field, $value)
     {
         return [self::DIRECTIVE_MAP[Finder::NOT_EQUAL_DIRECTIVE], $this->formatValue($field, $value)];
     }
@@ -122,7 +122,7 @@ class Mongo implements AdapterInterface, DirectiveInterface
      * @param $value
      * @return array
      */
-    public function makeEqFilter(string $field, string $value)
+    public function makeEqFilter(string $field, $value)
     {
         return [self::DIRECTIVE_MAP[Finder::EQUAL_DIRECTIVE], $this->formatValue($field, $value)];
     }
@@ -134,7 +134,7 @@ class Mongo implements AdapterInterface, DirectiveInterface
      * @param $value
      * @return array
      */
-    public function makeRegexFilter(string $field, string $value)
+    public function makeRegexFilter(string $field, $value)
     {
         return [self::DIRECTIVE_MAP[Finder::REGEX_DIRECTIVE], $this->formatValue($field, $value)];
     }
@@ -146,7 +146,7 @@ class Mongo implements AdapterInterface, DirectiveInterface
      * @param $value
      * @return array
      */
-    public function makeGtFilter(string $field, string $value)
+    public function makeGtFilter(string $field, $value)
     {
         return [self::DIRECTIVE_MAP[Finder::GREATER_THAN_DIRECTIVE], $this->formatValue($field, $value)];
     }
@@ -158,9 +158,20 @@ class Mongo implements AdapterInterface, DirectiveInterface
      * @param $value
      * @return array
      */
-    public function makeLtFilter(string $field, string $value)
+    public function makeLtFilter(string $field, $value)
     {
         return [self::DIRECTIVE_MAP[Finder::LESS_THAN_DIRECTIVE], $this->formatValue($field, $value)];
+    }
+
+
+    /**
+     * @param string $directive
+     * @param string $value
+     * @return array
+     */
+    public function makeWhereFilter(string $directive, $value)
+    {
+        return [self::DIRECTIVE_MAP[Finder::WHERE_DIRECTIVE], $value];
     }
 
     /**
@@ -170,7 +181,7 @@ class Mongo implements AdapterInterface, DirectiveInterface
      * @param $value
      * @return array
      */
-    public function makeGteFilter(string $field, string $value)
+    public function makeGteFilter(string $field, $value)
     {
         return [self::DIRECTIVE_MAP[Finder::GREATER_THAN_EQUAL_DIRECTIVE], $this->formatValue($field, $value)];
     }
@@ -182,7 +193,7 @@ class Mongo implements AdapterInterface, DirectiveInterface
      * @param $value
      * @return array
      */
-    public function makeLteFilter(string $field, string $value)
+    public function makeLteFilter(string $field, $value)
     {
         return [self::DIRECTIVE_MAP[Finder::LESS_THAN_EQUAL_DIRECTIVE], $this->formatValue($field, $value)];
     }
@@ -269,7 +280,7 @@ class Mongo implements AdapterInterface, DirectiveInterface
      * @return array
      * @throws \Exception
      */
-    private function execute()
+    public function execute(): array
     {
         $filter = $this->getFilters();
         $mongo = $this->getConnection()->selectDatabase($this->schema);

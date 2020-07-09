@@ -11,38 +11,108 @@ namespace Janfish\Database\Criteria\Adapter;
 interface AdapterInterface
 {
 
+    /**
+     * @param string $schema
+     * @return mixed
+     */
     public function setSchema(string $schema);
 
-    public function setTable($table);
+    /**
+     * @param string $table
+     * @return mixed
+     */
+    public function setTable(string $table);
 
+    /**
+     * @param array $columns
+     * @return mixed
+     */
     public function defineDoubleColumns(array $columns);
 
+    /**
+     * @param array $columns
+     * @return mixed
+     */
     public function defineIntegerColumns(array $columns);
 
+    /**
+     * @param array $columns
+     * @return mixed
+     */
     public function defineDateColumns(array $columns);
 
+    /**
+     * @param array $columns
+     * @return mixed
+     */
     public function defineFullTextColumns(array $columns);
 
+    /**
+     * @param array $columns
+     * @return mixed
+     */
     public function defineHideColumns(array $columns);
 
+    /**
+     * @param array $columns
+     * @return mixed
+     */
     public function removeHideColumns(array $columns);
 
+    /**
+     * @param int $offset
+     * @param int|null $limit
+     * @return mixed
+     */
     public function setPagination(int $offset, int $limit = null);
 
+    /**
+     * @param array $conditions
+     * @return mixed
+     */
     public function setConditions(array $conditions);
 
+    /**
+     * @param array $columns
+     * @return mixed
+     */
     public function setColumns(array $columns);
 
+    /**
+     * @param array $rule
+     * @return mixed
+     */
     public function setSort(array $rule);
 
+    /**
+     * @return int
+     */
     public function count(): int;
 
+    /**
+     * @return array
+     */
     public function fetchOne(): array;
 
+    /**
+     * @return array
+     */
     public function fetchAll(): array;
 
+    /**
+     * @return array
+     */
+    public function execute(): array;
+
+    /**
+     * @return mixed
+     */
     public function debug();
 
-    public function setConnection($connection =null);
+    /**
+     * @param null $connection
+     * @return mixed
+     */
+    public function setConnection($connection = null);
 
 }

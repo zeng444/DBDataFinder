@@ -1,7 +1,7 @@
 <?php
 include_once '../vendor/autoload.php';
 
-//github token 222fcb4d956fa47229dc9fa346d8d42f68b75d37 
+//github token 222fcb4d956fa47229dc9fa346d8d42f68b75d37
 use Janfish\Database\Criteria\Finder as Finder;
 use Phalcon\Di;
 
@@ -26,7 +26,7 @@ $di->setShared('db', function () {
 });
 
 
-$finder = new Finder(Finder::MONGO_MODE,false);
+$finder = new Finder(Finder::MONGO_MODE,true);
 //$finder = new Finder(Finder::MYSQL_MODE);
 $finder->setConnection((Di::getDefault())->get('mongo'));
 $finder->setAliasDirectives([
@@ -45,10 +45,10 @@ $searchConditions = [
 //    'adminId' => 1222,
 //    'createdAt' => ["2017-12-04 16:50:40", "2020-07-10"],
 //    'type' => ["TCI", "VCI"],
-//    '$where' => 'successOrderTotal > 0',
+    'where' => 'this.adminId > 0',
 //    'companyId' => ['eq' => 1],
 //    'source' => ["in" => ['PingAn']],
-    'queryValue' => "602",
+//    'queryValue' => "602",
 //    'queryValue' => ["regex" => "0008x"],
 //    'licensePlateNo' => "232",
 //    'col21' => ["notIn" => ['2']],
@@ -61,6 +61,6 @@ $searchConditions = [
 ];
 $finder->setConditions($searchConditions);
 print_r($finder->debug());
-print_r($finder->fetchOne());
+print_r($finder->fetchAll());
 //print_r($finder->fetchAll());
 //print_r($finder->count());

@@ -30,47 +30,54 @@ interface DirectiveInterface
      * @param string $value
      * @return mixed
      */
-    public function makeNeqFilter(string $field, string $value);
+    public function makeNeqFilter(string $field, $value);
 
     /**
      * @param string $field
      * @param string $value
      * @return mixed
      */
-    public function makeEqFilter(string $field, string $value);
+    public function makeEqFilter(string $field, $value);
 
     /**
      * @param string $field
      * @param string $value
      * @return mixed
      */
-    public function makeGtFilter(string $field, string $value);
+    public function makeGtFilter(string $field, $value);
 
     /**
      * @param string $field
      * @param string $value
      * @return mixed
      */
-    public function makeLtFilter(string $field, string $value);
+    public function makeLtFilter(string $field, $value);
 
     /**
      * @param string $field
      * @param string $value
      * @return mixed
      */
-    public function makeGteFilter(string $field, string $value);
+    public function makeGteFilter(string $field, $value);
 
     /**
      * @param string $field
      * @param string $value
      * @return mixed
      */
-    public function makeLteFilter(string $field, string $value);
+    public function makeLteFilter(string $field, $value);
 
     /**
      * @param string $field
      * @param string $value
      * @return mixed
      */
-    public function makeRegexFilter(string $field, string $value);
+    public function makeRegexFilter(string $field, $value);
+
+    /**
+     * @param string $directive
+     * @param $value
+     * @return mixed
+     */
+    public function makeWhereFilter(string $directive, $value);
 }
