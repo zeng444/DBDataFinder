@@ -220,6 +220,18 @@ class Mongo implements AdapterInterface, DirectiveInterface
     }
 
     /**
+     * @return array
+     */
+    private function makeColumnRule(): array
+    {
+        $columns = [];
+        foreach ($this->columns as $field => $alias) {
+            $columns[$field] = 1;
+        }
+        return $columns;
+    }
+
+    /**
      * Author:Robert
      *
      * @return int
@@ -243,10 +255,10 @@ class Mongo implements AdapterInterface, DirectiveInterface
         $mongo = $this->getDi()->get('mongo');
         $collection = $mongo->selectDatabase($this->schema);
         $items = $collection->find($filter, [
-            'projection' => $this->makeSortRule(),
+            'projection' => $this->makeColumnRule(),
             'skip' => $this->offset,
             'limit' => $this->limit,
-            'sort' => [],
+            'sort' =>$this->makeSortRule(),
         ]);
         if ($this->hideColumns) {
             return $this->removeHideColumns($items);
