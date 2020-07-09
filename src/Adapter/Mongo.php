@@ -21,7 +21,6 @@ class Mongo implements AdapterInterface, DirectiveInterface
      *
      */
     const DEFAULT_PRIMARY_ID_NAME = '_id';
-
     /**
      *
      */
@@ -38,9 +37,18 @@ class Mongo implements AdapterInterface, DirectiveInterface
         Finder::WHERE_DIRECTIVE => '$where',
     ];
     /**
+     * @var bool
+     */
+    private $_autoFullSearch = true;
+    /**
      * @var
      */
     private $_mongo;
+
+    public function __construct(bool $autoFullSearch = true)
+    {
+        $this->_autoFullSearch = $autoFullSearch;
+    }
 
     /**
      * Author:Robert
@@ -68,7 +76,7 @@ class Mongo implements AdapterInterface, DirectiveInterface
     {
         if ($field === self::DEFAULT_PRIMARY_ID_NAME) {
             $val = new \MongoDB\BSON\ObjectId($val);
-        } elseif (in_array($field, $this->fullTextColumns)) {
+        } elseif ($this->_autoFullSearch && in_array($field, $this->fullTextColumns)) {
             $val = new \MongoDB\BSON\Regex(preg_quote($val));
         } elseif (in_array($field, $this->dateColumns)) {
             $val = new \MongoDB\BSON\UTCDateTime(strtotime($val) * 1000);

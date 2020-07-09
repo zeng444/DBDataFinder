@@ -98,28 +98,36 @@ class Finder
     private $_adapter;
 
     /**
+     * @var bool
+     */
+    private $_autoFullSearch = true;
+
+    /**
      * Finder constructor.
      * @param string $mode
+     * @param bool $autoFullSearch
      * @throws \Exception
      */
-    public function __construct($mode = self::MYSQL_MODE)
+    public function __construct($mode = self::MYSQL_MODE, bool $autoFullSearch = true)
     {
-        $this->_adapter = $this->getAdapter($mode);
+        $this->_autoFullSearch = $autoFullSearch;
+        $this->_adapter = $this->getAdapter($mode, $this->_autoFullSearch);
     }
 
     /**
      * @param string $mode
+     * @param bool $autoFullSearch
      * @return Mongo|Mysql
      * @throws \Exception
      */
-    private function getAdapter(string $mode)
+    private function getAdapter(string $mode, bool $autoFullSearch)
     {
         switch ($mode) {
             case self::MYSQL_MODE:
-                $instance = new Mysql();
+                $instance = new Mysql($autoFullSearch);
                 break;
             case self::MONGO_MODE:
-                $instance = new Mongo();
+                $instance = new Mongo($autoFullSearch);
                 break;
             default:
                 throw new \Exception($mode . ' Adapter NOT SUPPORT');
@@ -181,16 +189,18 @@ class Finder
                     }
                 }
             } else {
-                if (in_array($column, $this->_adapter->fullTextColumns)) {
+                if ($this->_autoFullSearch && in_array($column, $this->_adapter->fullTextColumns)) {
                     $rules[$column][self::REGEX_DIRECTIVE] = $condition;
-                } elseif ($column = $this->getAliasDirective($column) ?: $column && in_array($column, self::CONDITION_DIRECTIVES)) {
-                    $rules[$column] = $condition;
                 } else {
-                    $rules[$column][self::EQUAL_DIRECTIVE] = $condition;
+                    $column = $this->getAliasDirective($column) ?: $column;
+                    if (in_array($column, self::CONDITION_DIRECTIVES)) {
+                        $rules[$column] = $condition;
+                    } else {
+                        $rules[$column][self::EQUAL_DIRECTIVE] = $condition;
+                    }
                 }
             }
         }
-
         $this->_adapter->setConditions($rules);
         return $this;
     }

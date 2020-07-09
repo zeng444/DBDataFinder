@@ -22,6 +22,21 @@ class Mysql implements AdapterInterface, DirectiveInterface
     private $_db;
 
     /**
+     * @var bool
+     */
+    private $_autoFullSearch = true;
+
+    /**
+     * Mysql constructor.
+     * @param bool $autoFullSearch
+     */
+    public function __construct(bool $autoFullSearch = true)
+    {
+        $this->_autoFullSearch = $autoFullSearch;
+    }
+
+
+    /**
      * Author:Robert
      *
      * @param $field
@@ -217,13 +232,13 @@ class Mysql implements AdapterInterface, DirectiveInterface
         $sql = [];
         $bind = [];
         foreach ($this->conditions as $column => $rules) {
-            if(in_array($column,Finder::CONDITION_DIRECTIVES)){
+            if (in_array($column, Finder::CONDITION_DIRECTIVES)) {
                 $funcName = "make" . ucfirst($column) . "Filter";
                 if (method_exists($this, $funcName)) {
                     $symbol = $this->$funcName($column, $rules);
                     $sql[] = $symbol[0];
                 }
-            }else{
+            } else {
                 foreach ($rules as $directive => $val) {
                     $funcName = "make" . ucfirst($directive) . "Filter";
                     if (method_exists($this, $funcName)) {
@@ -278,11 +293,6 @@ class Mysql implements AdapterInterface, DirectiveInterface
         $this->setPagination(1);
         $item = $this->execute();
         return $item ? current($item) : [];
-    }
-
-    public function debug()
-    {
-        return $this->getFilters();
     }
 
     /**
@@ -361,6 +371,11 @@ class Mysql implements AdapterInterface, DirectiveInterface
             $sort = $this->sort;
         }
         return $sort ? 'ORDER BY ' . $sort : '';
+    }
+
+    public function debug()
+    {
+        return $this->getFilters();
     }
 
     /**

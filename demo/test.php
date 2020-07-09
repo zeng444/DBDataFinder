@@ -25,60 +25,40 @@ $di->setShared('db', function () {
 });
 
 
-$find = new Finder(Finder::MONGO_MODE);
-//$find = new Finder(Finder::MYSQL_MODE);
-$find->setAliasDirectives([
+$finder = new Finder(Finder::MONGO_MODE,false);
+//$finder = new Finder(Finder::MYSQL_MODE);
+$finder->setAliasDirectives([
     Finder::EQUAL_DIRECTIVE => '$eqdd'
 ]);
-$find->setSchema('insurance');
-$find->setTable('orderDraft');
-$find->defineFullTextColumns(['queryValue', 'engineNo', 'vin', 'accountNo']);
-$find->defineDateColumns(['createdAt', 'updatedAt', 'quotedAt', 'paidAt', 'insuredAt', 'startAt', 'endAt']);
-$find->setSort(['id' => 'ASC']);
-$find->setColumns(['adminId', '_id', 'createdAt','queryValue']);
-//$find->defineHideColumns(['_id']);
-$find->setPagination(0, 100);
+$finder->setSchema('insurance');
+$finder->setTable('orderDraft');
+$finder->defineFullTextColumns(['queryValue', 'engineNo', 'vin', 'accountNo']);
+$finder->defineDateColumns(['createdAt', 'updatedAt', 'quotedAt', 'paidAt', 'insuredAt', 'startAt', 'endAt']);
+$finder->setSort(['id' => 'ASC']);
+$finder->setColumns(['adminId', '_id', 'createdAt', 'queryValue']);
+//$finder->defineHideColumns(['_id']);
+$finder->setPagination(0, 100);
 $searchConditions = [
-//    'id'=>1,
-//    'adminId'=>1222,
-//    'createdAt'=>["2017-12-04 16:50:40","2020-07-10"],
-//    'type'=>["TCI","VCI"],
-//    '$where'=>'successOrderTotal > 0',
-//    'companyId'=>['$eq'=>1],
-//    'source'=>["in"=>['PingAn']],
-    'queryValue'=>["regex"=>"0008x"],
-
-//
-//    'licensePlateNo'=>"232",
-//    'col21'=>["notIn"=>['2']],
-//    'col3'=>["neq"=>'2'],
-//    'col4'=>["gte"=>'2'],
-//    'col5'=>["lte"=>'2'],
-//    'col6'=>["neq"=>'sd'],
-//    'col7'=>["gt"=>'2'],
-//    'col8'=>["lt"=>'2'],
+//    'id' => 1,
+//    'adminId' => 1222,
+//    'createdAt' => ["2017-12-04 16:50:40", "2020-07-10"],
+//    'type' => ["TCI", "VCI"],
+//    '$where' => 'successOrderTotal > 0',
+//    'companyId' => ['eq' => 1],
+//    'source' => ["in" => ['PingAn']],
+    'queryValue' => "602",
+//    'queryValue' => ["regex" => "0008x"],
+//    'licensePlateNo' => "232",
+//    'col21' => ["notIn" => ['2']],
+//    'col3' => ["neq" => '2'],
+//    'col4' => ["gte" => '2'],
+//    'col5' => ["lte" => '2'],
+//    'col6' => ["neq" => 'sd'],
+//    'col7' => ["gt" => '2'],
+//    'col8' => ["lt" => '2'],
 ];
-//$searchConditions=[];
-//$searchConditions = [
-//    'createdAt'=>[
-//        "2020-07-08",
-//        "2020-07-10"
-//    ],
-//    'col3'=>2,
-//    'col2'=>["in"=>['2']],
-//'col1'=>["eq"=>8],
-//    'col0'=>["a","b"],
-//];
-//$searchConditions=[
-//    'licensePlateNo'=>['regex'=>"jiasdiasdji"],
-//    'engineNo'=>'2'
-//];
-$find->setConditions($searchConditions);
-print_r($find->debug());
-print_r($find->fetchOne());
-//print_r($find->fetchAll());
-//print_r($find->count());
-//$result = [
-//    'list' => $find->execute(),
-//    'count' => $find->count(),
-//];
+$finder->setConditions($searchConditions);
+print_r($finder->debug());
+print_r($finder->fetchOne());
+//print_r($finder->fetchAll());
+//print_r($finder->count());
