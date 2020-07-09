@@ -40,5 +40,5 @@ interface AdapterInterface
     public function fetchOne(): array;
 
     public function fetchAll(): array;
-    
+
 }

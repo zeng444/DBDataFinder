@@ -67,8 +67,22 @@ class Finder
      *
      */
     const NOT_IN_DIRECTIVE = 'notIn';
+    /**
+     * @var array
+     */
+    private static $aliasDirectives = [
+        self::REGEX_DIRECTIVE => '$regex',
+        self::EQUAL_DIRECTIVE => '$eq',
+        self::NOT_EQUAL_DIRECTIVE => '$ne',
+        self::IN_DIRECTIVE => '$in',
+        self::NOT_IN_DIRECTIVE => '$nin',
+        self::GREATER_THAN_DIRECTIVE => '$gt',
+        self::LESS_THAN_DIRECTIVE => '$lt',
+        self::GREATER_THAN_EQUAL_DIRECTIVE => '$gte',
+        self::LESS_THAN_EQUAL_DIRECTIVE => '$lte',
+    ];
 
-
+    private $_aliasMap = [];
     /**
      * @var Mongo|Mysql
      */
@@ -105,6 +119,30 @@ class Finder
         return $instance;
     }
 
+    /**
+     * @param array $directives
+     * @return $this
+     */
+    public function setAliasDirectives(array $directives)
+    {
+        foreach ($directives as $directive => $alias) {
+            $this->setAliasDirective($directive, $alias);
+        }
+        return $this;
+    }
+
+    /**
+     * @param string $directive
+     * @param string $alias
+     * @return $this
+     */
+    public function setAliasDirective(string $directive, string $alias)
+    {
+        if (isset(self::$aliasDirectives[$directive])) {
+            self::$aliasDirectives[$directive] = $alias;
+        }
+        return $this;
+    }
 
     /**
      * 配置快捷查询命令
@@ -130,7 +168,7 @@ class Finder
                     if (is_int($key)) {
                         $rules[$column][self::IN_DIRECTIVE] = $condition;
                     } else {
-                        $rules[$column][$key] = $condition[$key];
+                        $rules[$column][$this->getAliasDirective($key)] = $condition[$key];
                     }
                 }
             } else {
@@ -178,6 +216,19 @@ class Finder
         if ($call = call_user_func_array(array($this->_adapter, $method), $parameters)) {
             return $call;
         }
+    }
+
+    /**
+     * @param string $alias
+     * @return string
+     */
+    private function getAliasDirective(string $alias): string
+    {
+        if (!$this->_aliasMap) {
+            $this->_aliasMap = array_flip(self::$aliasDirectives);
+        }
+        return isset($this->_aliasMap[$alias]) ? $this->_aliasMap[$alias] : $alias;
+
     }
 
 }

@@ -27,12 +27,15 @@ $di->setShared('db', function () {
 
 $find = new Finder(Finder::MONGO_MODE);
 //$find = new Finder(Finder::MYSQL_MODE);
+$find->setAliasDirectives([
+    Finder::EQUAL_DIRECTIVE => '$eq'
+]);
 $find->setSchema('insurance');
 $find->setTable('orderDraft');
 $find->defineFullTextColumns(['licensePlateNo', 'engineNo', 'vin', 'accountNo']);
 $find->defineDateColumns(['createdAt', 'updatedAt', 'quotedAt', 'paidAt', 'insuredAt', 'startAt', 'endAt']);
 $find->setSort(['id' => 'ASC']);
-$find->setColumns(['adminId','_id','createdAt']);
+$find->setColumns(['adminId', '_id', 'createdAt']);
 //$find->defineHideColumns(['_id']);
 $find->setPagination(0, 100);
 $searchConditions = [
