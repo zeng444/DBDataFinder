@@ -372,7 +372,7 @@ class Finder
     {
         $rules = [];
         foreach ($columns as $rule) {
-            $rules[$rule] = 0;
+            $rules[$this->getSourceColumn($rule)] = 0;
         }
         $this->_hideColumns = $rules;
         return $this;
@@ -431,48 +431,60 @@ class Finder
     /**
      * Author:Robert
      *
-     * @param array $schema
+     * @param array $columns
      * @return $this
      */
-    public function defineDoubleColumns(array $schema)
+    public function defineDoubleColumns(array $columns)
     {
-        $this->_adapter->defineDoubleColumns($schema);
+        foreach ($columns as &$val) {
+            $val = $this->getSourceColumn($val);
+        }
+        $this->_adapter->defineDoubleColumns($columns);
         return $this;
     }
 
     /**
      * Author:Robert
      *
-     * @param array $schema
+     * @param array $columns
      * @return $this
      */
-    public function defineIntegerColumns(array $schema)
+    public function defineIntegerColumns(array $columns)
     {
-        $this->_adapter->defineIntegerColumns($schema);
+        foreach ($columns as &$val) {
+            $val = $this->getSourceColumn($val);
+        }
+        $this->_adapter->defineIntegerColumns($columns);
         return $this;
     }
 
     /**
      * Author:Robert
      *
-     * @param array $schema
+     * @param array $columns
      * @return $this
      */
-    public function defineDateColumns(array $schema)
+    public function defineDateColumns(array $columns)
     {
-        $this->_adapter->defineDateColumns($schema);
+        foreach ($columns as &$val) {
+            $val = $this->getSourceColumn($val);
+        }
+        $this->_adapter->defineDateColumns($columns);
         return $this;
     }
 
     /**
      * Author:Robert
      *
-     * @param array $schema
+     * @param array $columns
      * @return $this
      */
-    public function defineFullTextColumns(array $schema)
+    public function defineFullTextColumns(array $columns)
     {
-        $this->_adapter->defineFullTextColumns($schema);
+        foreach ($columns as &$val) {
+            $val = $this->getSourceColumn($val);
+        }
+        $this->_adapter->defineFullTextColumns($columns);
         return $this;
     }
 
