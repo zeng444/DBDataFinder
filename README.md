@@ -4,7 +4,7 @@
 
 ```
 $finderer = new Finder(Finder::MONGO_MODE);
-//$finder = new Finder(Finder::MYSQL_MODE);\
+//$finder = new Finder(Finder::MYSQL_MODE);
 $finder->setConnection((Di::getDefault())->get('mongo'));
 $finder->setAliasDirectives([
     Finder::EQUAL_DIRECTIVE => '='
