@@ -388,14 +388,14 @@ class Finder
     {
         if ($this->_hideColumns || $this->_aliasColumns) {
             return array_map(function ($item) {
+                if ($this->_hideColumns) {
+                    $item = array_diff_key($item, $this->_hideColumns);
+                }
                 foreach ($this->_aliasColumns as $column => $aliasColumn) {
                     if (isset($item[$column])) {
                         $item[$aliasColumn] = $item[$column];
                         unset($item[$column]);
                     }
-                }
-                if ($this->_hideColumns) {
-                    $item = array_diff_key($item, $this->_hideColumns);
                 }
                 return $item;
             }, $items);
